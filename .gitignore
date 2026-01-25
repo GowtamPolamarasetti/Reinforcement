@@ -1,0 +1,25 @@
+# Data and Raw files
+Data/
+Raw/
+*.csv
+*.xlsx
+*.parquet
+
+# Environment variables
+.env
+.env.local
+
+# Virtual Environments
+venv/
+env/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# IDE settings
+.vscode/
+.idea/
+.DS_Store
+

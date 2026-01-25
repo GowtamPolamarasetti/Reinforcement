@@ -1,0 +1,28 @@
+==================================================
+           QUANTITATIVE ANALYSIS REPORT           
+        WEIGHTED ENSEMBLE (FULL XAUUSD)           
+==================================================
+Metric Used: Full Dataset (Train + Test)
+No. Days: 2042 | Years: 5.59
+--------------------------------------------------
+RETURN METRICS
+  Final Capital    : $1,964,967,207,071,616,860,160.00
+  Total Return     : 1,964,967,207,071,616,768.00%
+  CAGR             : 81,629.23%
+  Ann. Volatility  : 106.90%
+--------------------------------------------------
+RISK METRICS
+  Max Drawdown     : -1.49%
+  Sharpe Ratio     : 4.72
+  Sortino Ratio    : 108.77
+  Calmar Ratio     : 54692.49
+--------------------------------------------------
+TRADE ANALYSIS
+  Total Trades     : 19182
+  Win Rate         : 49.55%
+  Loss Rate        : 10.29%
+  Profit Factor    : 4.82
+  Payoff Ratio     : 1.00
+  Expectancy       : 0.20% per trade
+  SQN Score        : 81.60
+==================================================

@@ -1,0 +1,29 @@
+==================================================
+           QUANTITATIVE ANALYSIS REPORT           
+             WEIGHTED ENSEMBLE MODEL              
+==================================================
+Metric Used: USD/MXN Transfer Learning (2015-2024)
+No. Days: 2403 | Years: 6.58
+--------------------------------------------------
+RETURN METRICS
+  Final Capital    : $9,338,432,531,584,197,328,896.00
+  Total Return     : 9,338,432,531,584,196,608.00%
+  CAGR             : 37715.84%
+  Ann. Volatility  : 236.95%
+--------------------------------------------------
+RISK METRICS
+  Max Drawdown     : -2.97%
+  Sharpe Ratio     : 2.15
+  Sortino Ratio    : 100.13
+  Calmar Ratio     : 12688.46
+--------------------------------------------------
+TRADE ANALYSIS
+  Total Trades     : 23847
+  Win Rate         : 45.78%
+  Loss Rate        : 12.87%
+  Profit Factor    : 3.56
+  Payoff Ratio     : 1.00
+  Expectancy       : 0.16% per trade
+  SQN Score        : 73.52
+  Kelly Criterion  : -8.43%
+==================================================
