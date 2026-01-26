@@ -291,3 +291,21 @@
 2026-01-27 01:34:44 | INFO     | orbit           | Replaying history to sync Renko state (Size: 5.90843)...
 2026-01-27 01:34:44 | INFO     | orbit           | Saved Warmup Renko Snapshot to: renkos\renko_2026-01-27_01-34-44.csv (11 bricks)
 2026-01-27 01:34:44 | INFO     | orbit           | Orbit Started. Brick: 5.9084
+2026-01-27 01:54:25 | INFO     | features        | Initializing Feature Engineer...
+2026-01-27 01:54:26 | INFO     | ensemble        | Loading Ensemble Agents...
+2026-01-27 01:54:28 | INFO     | ensemble        | Loaded ppo
+2026-01-27 01:54:28 | INFO     | ensemble        | Loaded dqn
+2026-01-27 01:54:28 | INFO     | ensemble        | Loaded qrdqn
+2026-01-27 01:54:28 | INFO     | ensemble        | Loaded recurrent
+2026-01-27 01:54:28 | ERROR    | ensemble        | Failed to load transformer: No module named 'RL_Agent_Final'
+2026-01-27 01:54:29 | INFO     | predictors      | Binary Outcome Model loaded.
+2026-01-27 01:54:29 | INFO     | predictors      | Binary Scaler loaded.
+2026-01-27 01:54:30 | INFO     | predictors      | Multi-class Outcome Model loaded.
+2026-01-27 01:54:30 | INFO     | predictors      | Multi Scaler loaded.
+2026-01-27 01:54:30 | INFO     | connector       | MT5 Connected. Code: (1, 'Success')
+2026-01-27 01:54:30 | INFO     | tick_buffer     | TickStream initialized starting from: 1769466268578
+2026-01-27 01:54:30 | INFO     | orbit           | Fetching M1 History for Optimization (7 Days)...
+2026-01-27 01:54:33 | INFO     | renko_optimizer | Optimization Results: BS=5.9339, Offset=4760.0322, PnL=175.0
+2026-01-27 01:54:33 | INFO     | orbit           | Replaying history to sync Renko state (Size: 5.93393)...
+2026-01-27 01:54:33 | INFO     | orbit           | Saved Warmup Renko Snapshot to: renkos\renko_2026-01-27_01-54-33.csv (11 bricks)
+2026-01-27 01:54:33 | INFO     | orbit           | Orbit Started. Brick: 5.9339
