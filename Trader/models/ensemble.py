@@ -51,7 +51,7 @@ class EnsembleAgent:
         except ImportError:
             logger.error("Transformer Policy module not found. Transformer model skipped.")
 
-    def predict(self, obs, lstm_states=None, episode_starts=None):
+    def predict(self, obs, lstm_states=None, episode_starts=None, obs_stack=None):
         """
         Returns: 
             final_action (int): 1 (Buy/Trade) or 0 (Skip)
@@ -90,18 +90,19 @@ class EnsembleAgent:
             )
             score += (1 if act[0]==1 else -1) * WEIGHTS['recurrent']
             
-        # 5. Transformer (Uses Stacked frames usually? Check design)
-        # Design: "Transformer PPO... uses Multi-Head... look across fixed context window (10 bricks)"
-        # `test_weighted_ensemble.py` uses `env_stack = make_env(stacked=True)`.
-        # So Transformer needs HISTORY of observations (Stack of 10).
-        # We need to maintain an Observation Buffer for transformer.
-        # Logic: If transformer is present, we need a buffer.
-        
-        if 'transformer' in self.models:
-            # Placeholder: If we don't have stack, we skip or use current?
-            # Model will error if shape doesn't match.
-            # Assuming we skip for now if buffer not ready.
-            pass
+        # 5. Transformer
+        if 'transformer' in self.models and obs_stack is not None:
+            # Transformer expects Stacked Frames.
+            # Shape for vectorized env: (n_envs, n_stack, obs_dim) or (n_envs, n_stack*obs_dim) depending on policy.
+            # Our TransformerPolicy expects (Batch, Seq, Feat) = (1, 10, 21).
+            # obs_stack is (10, 21). Reshape to (1, 10, 21)?
+            # SB3 VecFrameStack flattens observation usually? NO.
+            # Only if channel_last=False?
+            # Our training used VecFrameStack. The observation space became (10, 21).
+            # predict() expects simple numpy array matching observation space.
+            # If observation space is Box(10, 21), we pass (10, 21).
+            act, _ = self.models['transformer'].predict(obs_stack, deterministic=True)
+            score += (1 if act==1 else -1) * WEIGHTS['transformer']
             
         final_action = 1 if score > VOTE_THRESHOLD else 0
         return final_action, new_lstm_states, score
