@@ -1,10 +1,10 @@
 import time
 import numpy as np
 from collections import deque
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 import os
-from config.settings import DEFAULT_BRICK_SIZE, DEFAULT_OFFSET, SYMBOL
+from config.settings import DEFAULT_BRICK_SIZE, DEFAULT_OFFSET, SYMBOL, TIMEZONE_OFFSET
 from data.connector import MT5Connector
 from data.tick_buffer import TickStream
 from data.renko import RenkoBuilder
@@ -77,6 +77,11 @@ class OrbitEngine:
         else:
             # Convert to DF
             history_df = pd.DataFrame(ticks)
+            # Apply Timezone Offset to History (Shift UTC -> Broker Time)
+            # history_df['time'] is epoch seconds (UTC).
+            # We add offset seconds.
+            history_df['time'] = history_df['time'] + (TIMEZONE_OFFSET * 3600)
+            
             history_df['date'] = pd.to_datetime(history_df['time'], unit='s')
             # Ensure proper columns
             history_df.rename(columns={'tick_volume': 'volume'}, inplace=True)
@@ -102,6 +107,8 @@ class OrbitEngine:
             
             # Replay M1 bars as virtual ticks
             for idx, row in self.m1_buffer.iterrows():
+                # Row name is index (shifted date). timestamp() returns float seconds.
+                # We need ms.
                 ts_ms = int(row.name.timestamp() * 1000)
                 # Feed Open, High, Low, Close traversal to capture intra-bar bricks?
                 # RenkoBuilder.update_tick handles single price.
@@ -143,7 +150,7 @@ class OrbitEngine:
             # Renko history is list of NewBrickEvent namedtuples
             df = pd.DataFrame(self.renko.history)
             
-            # Add readable date
+            # Add readable date (from SHIFTED timestamps)
             if 'timestamp' in df.columns and not df.empty:
                 df['date'] = pd.to_datetime(df['timestamp'], unit='ms')
             
@@ -171,11 +178,16 @@ class OrbitEngine:
         # 3. Process Ticks
         for t in new_ticks:
             price = t['bid'] 
-            ts = t['time_msc']
+            # Apply Timezone Offset to Live Ticks
+            ts = t['time_msc'] + (TIMEZONE_OFFSET * 3600 * 1000)
+            
+            # Apply Offset to tick Dict for M1 Buffer
+            t_shifted = t.copy()
+            t_shifted['time'] = t['time'] + (TIMEZONE_OFFSET * 3600)
             
             # Update M1 Accumulator
             # Real-time M1 bar construction
-            self.update_m1_buffer(t)
+            self.update_m1_buffer(t_shifted)
             
             # A. Update Renko
             new_bricks = self.renko.update_tick(price, ts)
