@@ -14,9 +14,9 @@ def fetch_ohlc_data():
 
     # Set the time range (UTC)
     # Current time in UTC
-    utc_to = datetime.now(timezone.utc)
+    utc_to = datetime.now(timezone.utc) + timedelta(hours=2) # Fetch 1 day forward
     # 5 days ago
-    utc_from = utc_to - timedelta(days=5)
+    utc_from = utc_to - timedelta(days=5) 
 
     print(f"Fetching data from {utc_from} to {utc_to}...")
 
