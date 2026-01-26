@@ -251,3 +251,25 @@
 2026-01-27 00:54:05 | INFO     | renko_optimizer | Optimization Results: BS=5.9084, Offset=4560.5357, PnL=206.0
 2026-01-27 00:54:05 | INFO     | orbit           | Replaying history to sync Renko state (Size: 5.90843)...
 2026-01-27 00:54:05 | INFO     | orbit           | Orbit Started. Brick: 5.9084
+2026-01-27 01:11:01 | INFO     | orbit           | Orbit Stopped by User
+2026-01-27 01:11:01 | INFO     | connector       | MT5 Shutdown
+2026-01-27 01:11:17 | INFO     | tick_buffer     | TickStream initialized starting from: 1769456477734
+2026-01-27 01:11:17 | INFO     | features        | Initializing Feature Engineer...
+2026-01-27 01:11:18 | INFO     | ensemble        | Loading Ensemble Agents...
+2026-01-27 01:11:21 | INFO     | ensemble        | Loaded ppo
+2026-01-27 01:11:21 | INFO     | ensemble        | Loaded dqn
+2026-01-27 01:11:21 | INFO     | ensemble        | Loaded qrdqn
+2026-01-27 01:11:21 | INFO     | ensemble        | Loaded recurrent
+2026-01-27 01:11:22 | ERROR    | ensemble        | Failed to load transformer: No module named 'RL_Agent_Final'
+2026-01-27 01:11:22 | INFO     | predictors      | Binary Outcome Model loaded.
+2026-01-27 01:11:22 | INFO     | predictors      | Binary Scaler loaded.
+2026-01-27 01:11:22 | INFO     | predictors      | Multi-class Outcome Model loaded.
+2026-01-27 01:11:22 | INFO     | predictors      | Multi Scaler loaded.
+2026-01-27 01:11:22 | INFO     | connector       | MT5 Connected. Code: (1, 'Success')
+2026-01-27 01:11:23 | INFO     | orbit           | Fetching M1 History for Optimization (7 Days)...
+2026-01-27 01:11:26 | INFO     | renko_optimizer | Optimization Results: BS=5.9084, Offset=4548.4329, PnL=206.0
+2026-01-27 01:11:26 | INFO     | orbit           | Replaying history to sync Renko state (Size: 5.90843)...
+2026-01-27 01:11:26 | INFO     | orbit           | Saved Warmup Renko Snapshot to: renkos\renko_2026-01-27_01-11-26.csv (5 bricks)
+2026-01-27 01:11:26 | INFO     | orbit           | Orbit Started. Brick: 5.9084
+2026-01-27 01:14:57 | INFO     | orbit           | Orbit Stopped by User
+2026-01-27 01:14:57 | INFO     | connector       | MT5 Shutdown
