@@ -5,7 +5,7 @@ import joblib
 import os
 
 class RegimeIdentifier:
-    def __init__(self, models_dir='RL_Agent_Filter/models'):
+    def __init__(self, models_dir='RL_Agent_Final/models_regime'):
         self.models_dir = models_dir
         self.model_1m = None
         self.model_renko = None
