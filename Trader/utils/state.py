@@ -41,9 +41,9 @@ class StateManager:
     def get(self, key, default=None):
         return self.state.get(key, default)
     
-    def reset_daily(self):
-        """Reset daily counters but keep persistence logic if needed."""
+    def reset_daily(self, current_date_str):
+        """Reset daily counters using explicit Server Date."""
         self.state["daily_pnl"] = 0.0
         self.state["trades_today"] = 0
-        self.state["current_day"] = datetime.now().date().isoformat()
+        self.state["current_day"] = current_date_str
         self.save()

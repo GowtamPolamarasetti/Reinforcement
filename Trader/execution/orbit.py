@@ -21,7 +21,7 @@ class OrbitEngine:
         # Components
         self.connector = MT5Connector()
         self.state = StateManager()
-        self.clock = TickStream() # State loaded inside or fresh?
+        self.clock = None # Initialized in start() after connection
         
         # Load Optimization params from state or default
         saved_brick = self.state.get("optimization", {}).get("brick_size", 0.0)
@@ -56,6 +56,9 @@ class OrbitEngine:
     def start(self):
         if not self.connector.connect():
             return
+            
+        # Initialize TickStream NOW, when MT5 is connected
+        self.clock = TickStream()
             
         # Optimization & Warmup Logic
         import MetaTrader5 as mt5

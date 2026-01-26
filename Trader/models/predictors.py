@@ -70,7 +70,9 @@ class OutcomePredictor:
         if hasattr(brick, 'timestamp') and isinstance(brick.timestamp, (int, float)):
            dt = pd.to_datetime(brick.timestamp, unit='ms')
         else:
-           dt = pd.to_datetime(datetime.now()) # Fallback
+           # CRITICAL: Feature extraction requires valid server timestamp for 'Hour' feature.
+           # Fallback to local time is dangerous due to timezone shift.
+           raise ValueError(f"Feature Extraction Error: Brick missing valid timestamp. Got: {getattr(brick, 'timestamp', 'None')}")
 
         hour = dt.hour
         day = dt.dayofweek

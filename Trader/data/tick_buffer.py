@@ -17,7 +17,10 @@ class TickStream:
             if tick:
                 self.last_time_msc = tick.time_msc
             else:
-                self.last_time_msc = int(time.time() * 1000)
+                # CRITICAL: Do not fallback to local time.
+                # If we are here, MT5 is connected but symbol is invalid or market is down.
+                # Or maybe connection dropped.
+                raise RuntimeError(f"TickStream Error: Could not retrieve initial tick for {SYMBOL}. Check MT5 connection.")
         else:
             self.last_time_msc = start_time_msc
             
