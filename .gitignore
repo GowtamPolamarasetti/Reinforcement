@@ -1,7 +1,7 @@
 # Data and Raw files
 Data1/
 Raw/
-*.csv
+
 *.xlsx
 *.parquet
 
