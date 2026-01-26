@@ -66,6 +66,40 @@ class OrderExecutor:
             
         logger.info(f"Modified SL for {ticket} to {new_sl}")
         return True
+
+    def move_sl_to_entry(self, symbol):
+        """
+        Moves SL to Break-Even (Position Open Price).
+        Checks if already moved to avoid spam.
+        """
+        positions = mt5.positions_get(symbol=symbol, magic=MAGIC_NUMBER)
+        if not positions:
+            return False
+            
+        pos = positions[0] # Assume one position per symbol logic
+        entry_price = pos.price_open
+        current_sl = pos.sl
+        
+        # Check direction
+        is_buy = (pos.type == mt5.ORDER_TYPE_BUY)
+        
+        needs_update = False
+        if is_buy:
+            # If SL is below entry, move it up.
+            # If SL is already >= entry, ignore.
+            if current_sl < entry_price - 0.00001: # Epsilon
+                needs_update = True
+        else:
+            # Sell: If SL is above entry, move it down.
+            # If SL <= entry, ignore.
+            if current_sl > entry_price + 0.00001 or current_sl == 0.0:
+                needs_update = True
+                
+        if needs_update:
+            logger.info(f"Triggering BE for Ticket {pos.ticket}. Entry: {entry_price}")
+            return self.modify_sl(pos.ticket, entry_price)
+            
+        return False
         
     def close_all(self):
         positions = mt5.positions_get(symbol=SYMBOL, magic=MAGIC_NUMBER)
