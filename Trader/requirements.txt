@@ -1,0 +1,10 @@
+MetaTrader5
+pandas
+numpy
+stable-baselines3
+sb3-contrib
+shimmy
+catboost
+hmmlearn
+joblib
+pandas_ta

@@ -1,0 +1,107 @@
+from stable_baselines3 import PPO, DQN
+from sb3_contrib import QRDQN, RecurrentPPO
+import numpy as np
+from config.definitions import (
+    M_PPO_PATH, M_DQN_PATH, M_QRDQN_PATH, M_RECURRENT_PATH, M_TRANSFORMER_PATH
+)
+from config.settings import WEIGHTS, VOTE_THRESHOLD
+from utils.logger import logger
+import os
+
+# Try to import Transformer Policy
+# We need `transformer_policy.py` in the path or same dir.
+# It is in `RL_Agent_Final/transformer_policy.py`.
+# We should copy it to `Trader/models` or `Trader/utils` to import it.
+import sys
+# sys.path.append(...) or copy.
+# Let's assume we copy it to `Trader/models/transformer_policy.py` later.
+# For now, import inside try/except block.
+
+class EnsembleAgent:
+    def __init__(self):
+        self.models = {}
+        
+    def load_all(self):
+        logger.info("Loading Ensemble Agents...")
+        
+        # Helper to load safely
+        def load_one(name, cls, path, **kwargs):
+            if os.path.exists(path + ".zip") or os.path.exists(path):
+                try:
+                    self.models[name] = cls.load(path, **kwargs)
+                    logger.info(f"Loaded {name}")
+                except Exception as e:
+                    logger.error(f"Failed to load {name}: {e}")
+            else:
+                logger.warning(f"Model {name} not found at {path}")
+
+        load_one('ppo', PPO, M_PPO_PATH)
+        load_one('dqn', DQN, M_DQN_PATH)
+        load_one('qrdqn', QRDQN, M_QRDQN_PATH)
+        load_one('recurrent', RecurrentPPO, M_RECURRENT_PATH)
+        
+        # Transformer needs custom object
+        try:
+            # Absolute path import if possible, or relative
+            # We need to ensure transformer_policy is importable.
+            # I will assume `from models.transformer_policy import TransformerExtractor` works
+            # AFTER I copy the file.
+            from models.transformer_policy import TransformerExtractor
+            load_one('transformer', PPO, M_TRANSFORMER_PATH, custom_objects={'features_extractor_class': TransformerExtractor})
+        except ImportError:
+            logger.error("Transformer Policy module not found. Transformer model skipped.")
+
+    def predict(self, obs, lstm_states=None, episode_starts=None):
+        """
+        Returns: 
+            final_action (int): 1 (Buy/Trade) or 0 (Skip)
+            new_lstm_states: Updated states for recurrent model
+            score: The raw ensemble score
+        """
+        score = 0.0
+        new_lstm_states = lstm_states
+        
+        # Voting Logic
+        # 1. PPO
+        if 'ppo' in self.models:
+            act, _ = self.models['ppo'].predict(obs, deterministic=True)
+            score += (1 if act==1 else -1) * WEIGHTS['ppo']
+            
+        # 2. DQN
+        if 'dqn' in self.models:
+            act, _ = self.models['dqn'].predict(obs, deterministic=True)
+            score += (1 if act==1 else -1) * WEIGHTS['dqn']
+            
+        # 3. QRDQN
+        if 'qrdqn' in self.models:
+            act, _ = self.models['qrdqn'].predict(obs, deterministic=True)
+            score += (1 if act==1 else -1) * WEIGHTS['qrdqn']
+            
+        # 4. Recurrent
+        if 'recurrent' in self.models:
+            # Recurrent expects (n_envs, obs_dim) usually. DummyVecEnv wraps it.
+            # If obs is 1D (21,), reshape to (1, 21)
+            obs_reshaped = obs.reshape(1, -1)
+            act, new_lstm_states = self.models['recurrent'].predict(
+                obs_reshaped, 
+                state=lstm_states, 
+                episode_start=episode_starts, 
+                deterministic=True
+            )
+            score += (1 if act[0]==1 else -1) * WEIGHTS['recurrent']
+            
+        # 5. Transformer (Uses Stacked frames usually? Check design)
+        # Design: "Transformer PPO... uses Multi-Head... look across fixed context window (10 bricks)"
+        # `test_weighted_ensemble.py` uses `env_stack = make_env(stacked=True)`.
+        # So Transformer needs HISTORY of observations (Stack of 10).
+        # We need to maintain an Observation Buffer for transformer.
+        # Logic: If transformer is present, we need a buffer.
+        
+        if 'transformer' in self.models:
+            # Placeholder: If we don't have stack, we skip or use current?
+            # Model will error if shape doesn't match.
+            # Assuming we skip for now if buffer not ready.
+            pass
+            
+        final_action = 1 if score > VOTE_THRESHOLD else 0
+        return final_action, new_lstm_states, score

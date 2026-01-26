@@ -1,0 +1,43 @@
+2026-01-26 21:37:28 | INFO     | tick_buffer     | TickStream initialized starting from: 1769443648119
+2026-01-26 21:37:28 | INFO     | features        | Initializing Feature Engineer...
+2026-01-26 21:38:21 | INFO     | tick_buffer     | TickStream initialized starting from: 1769443701328
+2026-01-26 21:38:21 | INFO     | features        | Initializing Feature Engineer...
+2026-01-26 21:38:21 | INFO     | ensemble        | Loading Ensemble Agents...
+2026-01-26 21:38:23 | INFO     | ensemble        | Loaded ppo
+2026-01-26 21:38:23 | INFO     | ensemble        | Loaded dqn
+2026-01-26 21:38:23 | INFO     | ensemble        | Loaded qrdqn
+2026-01-26 21:38:23 | INFO     | ensemble        | Loaded recurrent
+2026-01-26 21:38:23 | ERROR    | ensemble        | Failed to load transformer: No module named 'RL_Agent_Final'
+2026-01-26 21:38:23 | ERROR    | predictors      | Error loading outcome models: No module named 'xgboost'
+2026-01-26 21:48:44 | INFO     | tick_buffer     | TickStream initialized starting from: 1769444324631
+2026-01-26 21:48:44 | INFO     | features        | Initializing Feature Engineer...
+2026-01-26 21:48:44 | WARNING  | features        | BiLSTM model not loaded. Returns 0.5.
+2026-01-26 21:48:44 | INFO     | ensemble        | Loading Ensemble Agents...
+2026-01-26 21:48:46 | INFO     | ensemble        | Loaded ppo
+2026-01-26 21:48:46 | INFO     | ensemble        | Loaded dqn
+2026-01-26 21:48:46 | INFO     | ensemble        | Loaded qrdqn
+2026-01-26 21:48:46 | INFO     | ensemble        | Loaded recurrent
+2026-01-26 21:48:46 | ERROR    | ensemble        | Failed to load transformer: No module named 'RL_Agent_Final'
+2026-01-26 21:48:46 | ERROR    | predictors      | Error loading outcome models: No module named 'lightgbm'
+2026-01-26 21:50:15 | INFO     | tick_buffer     | TickStream initialized starting from: 1769444415023
+2026-01-26 21:50:15 | INFO     | features        | Initializing Feature Engineer...
+2026-01-26 21:50:15 | WARNING  | features        | BiLSTM model not loaded. Returns 0.5.
+2026-01-26 21:50:15 | INFO     | ensemble        | Loading Ensemble Agents...
+2026-01-26 21:50:17 | INFO     | ensemble        | Loaded ppo
+2026-01-26 21:50:17 | INFO     | ensemble        | Loaded dqn
+2026-01-26 21:50:17 | INFO     | ensemble        | Loaded qrdqn
+2026-01-26 21:50:17 | INFO     | ensemble        | Loaded recurrent
+2026-01-26 21:50:17 | ERROR    | ensemble        | Failed to load transformer: No module named 'RL_Agent_Final'
+2026-01-26 21:50:18 | INFO     | predictors      | Binary Outcome Model loaded.
+2026-01-26 21:50:18 | INFO     | predictors      | Multi-class Outcome Model loaded.
+2026-01-26 21:52:06 | INFO     | tick_buffer     | TickStream initialized starting from: 1769444526949
+2026-01-26 21:52:06 | INFO     | features        | Initializing Feature Engineer...
+2026-01-26 21:52:06 | WARNING  | features        | BiLSTM model not loaded. Returns 0.5.
+2026-01-26 21:52:06 | INFO     | ensemble        | Loading Ensemble Agents...
+2026-01-26 21:52:08 | INFO     | ensemble        | Loaded ppo
+2026-01-26 21:52:08 | INFO     | ensemble        | Loaded dqn
+2026-01-26 21:52:08 | INFO     | ensemble        | Loaded qrdqn
+2026-01-26 21:52:08 | INFO     | ensemble        | Loaded recurrent
+2026-01-26 21:52:09 | INFO     | ensemble        | Loaded transformer
+2026-01-26 21:52:09 | INFO     | predictors      | Binary Outcome Model loaded.
+2026-01-26 21:52:09 | INFO     | predictors      | Multi-class Outcome Model loaded.
