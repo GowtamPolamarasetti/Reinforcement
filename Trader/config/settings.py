@@ -17,6 +17,8 @@ RISK_PER_TRADE_PCT = 0.005 # 0.5% (Not always used if fixed lot, but good for ca
 # Default starting values, usually overwritten by Daily Optimizer
 DEFAULT_BRICK_SIZE = 1.0 
 DEFAULT_OFFSET = 0.0
+# T6 Factor: 0.00236 / 2 = 0.00118
+BRICK_SIZE_FACTOR = 0.00118
 
 # Ensemble Weights (Optimized)
 WEIGHTS = {

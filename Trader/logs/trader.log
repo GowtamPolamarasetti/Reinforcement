@@ -41,3 +41,165 @@
 2026-01-26 21:52:09 | INFO     | ensemble        | Loaded transformer
 2026-01-26 21:52:09 | INFO     | predictors      | Binary Outcome Model loaded.
 2026-01-26 21:52:09 | INFO     | predictors      | Multi-class Outcome Model loaded.
+2026-01-26 22:02:12 | INFO     | tick_buffer     | TickStream initialized starting from: 1769445132442
+2026-01-26 22:02:12 | INFO     | features        | Initializing Feature Engineer...
+2026-01-26 22:02:13 | INFO     | ensemble        | Loading Ensemble Agents...
+2026-01-26 22:02:16 | INFO     | ensemble        | Loaded ppo
+2026-01-26 22:02:16 | INFO     | ensemble        | Loaded dqn
+2026-01-26 22:02:16 | INFO     | ensemble        | Loaded qrdqn
+2026-01-26 22:02:16 | INFO     | ensemble        | Loaded recurrent
+2026-01-26 22:02:16 | INFO     | ensemble        | Loaded transformer
+2026-01-26 22:02:16 | INFO     | predictors      | Binary Outcome Model loaded.
+2026-01-26 22:02:17 | INFO     | predictors      | Multi-class Outcome Model loaded.
+2026-01-26 22:10:45 | INFO     | tick_buffer     | TickStream initialized starting from: 1769445645552
+2026-01-26 22:10:45 | INFO     | features        | Initializing Feature Engineer...
+2026-01-26 22:10:46 | INFO     | ensemble        | Loading Ensemble Agents...
+2026-01-26 22:10:47 | INFO     | ensemble        | Loaded ppo
+2026-01-26 22:10:47 | INFO     | ensemble        | Loaded dqn
+2026-01-26 22:10:47 | INFO     | ensemble        | Loaded qrdqn
+2026-01-26 22:10:47 | INFO     | ensemble        | Loaded recurrent
+2026-01-26 22:10:47 | INFO     | ensemble        | Loaded transformer
+2026-01-26 22:10:47 | INFO     | predictors      | Binary Outcome Model loaded.
+2026-01-26 22:10:47 | INFO     | predictors      | Binary Scaler loaded.
+2026-01-26 22:10:47 | INFO     | predictors      | Multi-class Outcome Model loaded.
+2026-01-26 22:10:47 | INFO     | predictors      | Multi Scaler loaded.
+2026-01-26 22:14:15 | INFO     | tick_buffer     | TickStream initialized starting from: 1769445855654
+2026-01-26 22:14:15 | INFO     | features        | Initializing Feature Engineer...
+2026-01-26 22:14:15 | INFO     | ensemble        | Loading Ensemble Agents...
+2026-01-26 22:14:17 | INFO     | ensemble        | Loaded ppo
+2026-01-26 22:14:17 | INFO     | ensemble        | Loaded dqn
+2026-01-26 22:14:17 | INFO     | ensemble        | Loaded qrdqn
+2026-01-26 22:14:17 | INFO     | ensemble        | Loaded recurrent
+2026-01-26 22:14:17 | INFO     | ensemble        | Loaded transformer
+2026-01-26 22:14:17 | INFO     | predictors      | Binary Outcome Model loaded.
+2026-01-26 22:14:17 | INFO     | predictors      | Binary Scaler loaded.
+2026-01-26 22:14:17 | INFO     | predictors      | Multi-class Outcome Model loaded.
+2026-01-26 22:14:17 | INFO     | predictors      | Multi Scaler loaded.
+2026-01-26 22:14:27 | INFO     | connector       | MT5 Connected. Code: (1, 'Success')
+2026-01-26 22:14:27 | INFO     | orbit           | Orbit Started. Brick: 1.0, Price: 4337.88
+2026-01-26 22:16:41 | INFO     | tick_buffer     | TickStream initialized starting from: 1769446001413
+2026-01-26 22:16:41 | INFO     | features        | Initializing Feature Engineer...
+2026-01-26 22:16:41 | INFO     | ensemble        | Loading Ensemble Agents...
+2026-01-26 22:16:44 | INFO     | ensemble        | Loaded ppo
+2026-01-26 22:16:44 | INFO     | ensemble        | Loaded dqn
+2026-01-26 22:16:44 | INFO     | ensemble        | Loaded qrdqn
+2026-01-26 22:16:44 | INFO     | ensemble        | Loaded recurrent
+2026-01-26 22:16:44 | INFO     | ensemble        | Loaded transformer
+2026-01-26 22:16:45 | INFO     | predictors      | Binary Outcome Model loaded.
+2026-01-26 22:16:45 | INFO     | predictors      | Binary Scaler loaded.
+2026-01-26 22:16:45 | INFO     | predictors      | Multi-class Outcome Model loaded.
+2026-01-26 22:16:45 | INFO     | predictors      | Multi Scaler loaded.
+2026-01-26 22:16:45 | INFO     | connector       | MT5 Connected. Code: (1, 'Success')
+2026-01-26 22:16:45 | INFO     | orbit           | Orbit Started. Brick: 1.0, Price: 5080.06
+2026-01-26 22:20:10 | INFO     | tick_buffer     | TickStream initialized starting from: 1769446210395
+2026-01-26 22:20:10 | INFO     | features        | Initializing Feature Engineer...
+2026-01-26 22:20:10 | INFO     | ensemble        | Loading Ensemble Agents...
+2026-01-26 22:20:12 | INFO     | ensemble        | Loaded ppo
+2026-01-26 22:20:12 | INFO     | ensemble        | Loaded dqn
+2026-01-26 22:20:12 | INFO     | ensemble        | Loaded qrdqn
+2026-01-26 22:20:12 | INFO     | ensemble        | Loaded recurrent
+2026-01-26 22:20:12 | INFO     | ensemble        | Loaded transformer
+2026-01-26 22:20:12 | INFO     | predictors      | Binary Outcome Model loaded.
+2026-01-26 22:20:12 | INFO     | predictors      | Binary Scaler loaded.
+2026-01-26 22:20:12 | INFO     | predictors      | Multi-class Outcome Model loaded.
+2026-01-26 22:20:12 | INFO     | predictors      | Multi Scaler loaded.
+2026-01-26 22:20:12 | INFO     | connector       | MT5 Connected. Code: (1, 'Success')
+2026-01-26 22:20:12 | INFO     | orbit           | Orbit Started. Brick: 1.0, Price: 5083.99
+2026-01-26 22:21:45 | INFO     | orbit           | New Brick: NewBrickEvent(open=5083.99, close=5082.99, high=5083.99, low=5082.99, uptrend=False, timestamp=np.int64(1769453294389))
+2026-01-26 22:23:34 | INFO     | tick_buffer     | TickStream initialized starting from: 1769446414873
+2026-01-26 22:23:34 | INFO     | features        | Initializing Feature Engineer...
+2026-01-26 22:23:35 | INFO     | ensemble        | Loading Ensemble Agents...
+2026-01-26 22:23:36 | INFO     | ensemble        | Loaded ppo
+2026-01-26 22:23:36 | INFO     | ensemble        | Loaded dqn
+2026-01-26 22:23:36 | INFO     | ensemble        | Loaded qrdqn
+2026-01-26 22:23:36 | INFO     | ensemble        | Loaded recurrent
+2026-01-26 22:23:36 | INFO     | ensemble        | Loaded transformer
+2026-01-26 22:23:37 | INFO     | predictors      | Binary Outcome Model loaded.
+2026-01-26 22:23:37 | INFO     | predictors      | Binary Scaler loaded.
+2026-01-26 22:23:37 | INFO     | predictors      | Multi-class Outcome Model loaded.
+2026-01-26 22:23:37 | INFO     | predictors      | Multi Scaler loaded.
+2026-01-26 22:23:37 | INFO     | connector       | MT5 Connected. Code: (1, 'Success')
+2026-01-26 22:23:37 | INFO     | orbit           | Orbit Started. Brick: 1.0, Price: 5085.51
+2026-01-26 22:25:11 | INFO     | orbit           | New Brick: NewBrickEvent(open=5085.51, close=5084.51, high=5085.51, low=5084.51, uptrend=False, timestamp=np.int64(1769453294389))
+2026-01-26 22:25:11 | INFO     | orbit           | Ensemble Vote: 3.3519 -> Action: 0
+2026-01-26 22:25:11 | INFO     | orbit           | New Brick: NewBrickEvent(open=5084.51, close=5083.51, high=5084.51, low=5083.51, uptrend=False, timestamp=np.int64(1769453294389))
+2026-01-26 22:25:11 | INFO     | orbit           | Ensemble Vote: 3.3519 -> Action: 0
+2026-01-26 22:25:11 | INFO     | orbit           | New Brick: NewBrickEvent(open=5083.51, close=5082.51, high=5083.51, low=5082.51, uptrend=False, timestamp=np.int64(1769453294389))
+2026-01-26 22:25:11 | INFO     | orbit           | Ensemble Vote: 3.3519 -> Action: 0
+2026-01-26 22:26:43 | INFO     | orbit           | Orbit Stopped by User
+2026-01-26 22:26:43 | INFO     | connector       | MT5 Shutdown
+2026-01-26 22:28:51 | INFO     | tick_buffer     | TickStream initialized starting from: 1769446731204
+2026-01-26 22:28:51 | INFO     | features        | Initializing Feature Engineer...
+2026-01-26 22:28:51 | INFO     | ensemble        | Loading Ensemble Agents...
+2026-01-26 22:28:55 | INFO     | ensemble        | Loaded ppo
+2026-01-26 22:28:55 | INFO     | ensemble        | Loaded dqn
+2026-01-26 22:28:55 | INFO     | ensemble        | Loaded qrdqn
+2026-01-26 22:28:55 | INFO     | ensemble        | Loaded recurrent
+2026-01-26 22:28:55 | INFO     | ensemble        | Loaded transformer
+2026-01-26 22:28:55 | INFO     | predictors      | Binary Outcome Model loaded.
+2026-01-26 22:28:55 | INFO     | predictors      | Binary Scaler loaded.
+2026-01-26 22:28:56 | INFO     | predictors      | Multi-class Outcome Model loaded.
+2026-01-26 22:28:56 | INFO     | predictors      | Multi Scaler loaded.
+2026-01-26 22:29:58 | INFO     | tick_buffer     | TickStream initialized starting from: 1769446798879
+2026-01-26 22:29:58 | INFO     | features        | Initializing Feature Engineer...
+2026-01-26 22:29:59 | INFO     | ensemble        | Loading Ensemble Agents...
+2026-01-26 22:30:01 | INFO     | ensemble        | Loaded ppo
+2026-01-26 22:30:01 | INFO     | ensemble        | Loaded dqn
+2026-01-26 22:30:01 | INFO     | ensemble        | Loaded qrdqn
+2026-01-26 22:30:01 | INFO     | ensemble        | Loaded recurrent
+2026-01-26 22:30:01 | INFO     | ensemble        | Loaded transformer
+2026-01-26 22:30:01 | INFO     | predictors      | Binary Outcome Model loaded.
+2026-01-26 22:30:01 | INFO     | predictors      | Binary Scaler loaded.
+2026-01-26 22:30:02 | INFO     | predictors      | Multi-class Outcome Model loaded.
+2026-01-26 22:30:02 | INFO     | predictors      | Multi Scaler loaded.
+2026-01-26 22:30:02 | INFO     | connector       | MT5 Connected. Code: (1, 'Success')
+2026-01-26 22:30:02 | INFO     | orbit           | Orbit Started. Brick: 6.0059, Price: 5089.73
+2026-01-26 22:31:32 | INFO     | orbit           | New Brick: NewBrickEvent(open=5089.73, close=5095.7358814, high=5095.7358814, low=5089.73, uptrend=True, timestamp=np.int64(1769446798918))
+2026-01-26 22:31:32 | INFO     | orbit           | Ensemble Vote: 3.3519 -> Action: 0
+2026-01-26 22:31:32 | INFO     | orbit           | New Brick: NewBrickEvent(open=5095.7358814, close=5101.7417628, high=5101.7417628, low=5095.7358814, uptrend=True, timestamp=np.int64(1769450659931))
+2026-01-26 22:31:33 | INFO     | orbit           | Ensemble Vote: 3.3519 -> Action: 0
+2026-01-26 23:34:34 | INFO     | orbit           | Orbit Stopped by User
+2026-01-26 23:34:34 | INFO     | connector       | MT5 Shutdown
+2026-01-26 23:34:44 | INFO     | tick_buffer     | TickStream initialized starting from: 1769450684411
+2026-01-26 23:34:44 | INFO     | features        | Initializing Feature Engineer...
+2026-01-26 23:34:44 | INFO     | ensemble        | Loading Ensemble Agents...
+2026-01-26 23:34:47 | INFO     | ensemble        | Loaded ppo
+2026-01-26 23:34:47 | INFO     | ensemble        | Loaded dqn
+2026-01-26 23:34:47 | INFO     | ensemble        | Loaded qrdqn
+2026-01-26 23:34:47 | INFO     | ensemble        | Loaded recurrent
+2026-01-26 23:34:47 | INFO     | ensemble        | Loaded transformer
+2026-01-26 23:34:48 | INFO     | predictors      | Binary Outcome Model loaded.
+2026-01-26 23:34:48 | INFO     | predictors      | Binary Scaler loaded.
+2026-01-26 23:34:48 | INFO     | predictors      | Multi-class Outcome Model loaded.
+2026-01-26 23:34:48 | INFO     | predictors      | Multi Scaler loaded.
+2026-01-26 23:35:33 | INFO     | tick_buffer     | TickStream initialized starting from: 1769450733544
+2026-01-26 23:35:33 | INFO     | features        | Initializing Feature Engineer...
+2026-01-26 23:35:34 | INFO     | ensemble        | Loading Ensemble Agents...
+2026-01-26 23:35:36 | INFO     | ensemble        | Loaded ppo
+2026-01-26 23:35:36 | INFO     | ensemble        | Loaded dqn
+2026-01-26 23:35:36 | INFO     | ensemble        | Loaded qrdqn
+2026-01-26 23:35:36 | INFO     | ensemble        | Loaded recurrent
+2026-01-26 23:35:36 | INFO     | ensemble        | Loaded transformer
+2026-01-26 23:35:36 | INFO     | predictors      | Binary Outcome Model loaded.
+2026-01-26 23:35:36 | INFO     | predictors      | Binary Scaler loaded.
+2026-01-26 23:35:36 | INFO     | predictors      | Multi-class Outcome Model loaded.
+2026-01-26 23:35:36 | INFO     | predictors      | Multi Scaler loaded.
+2026-01-26 23:35:36 | INFO     | connector       | MT5 Connected. Code: (1, 'Success')
+2026-01-26 23:35:38 | INFO     | orbit           | Fetching M1 History for Optimization (7 Days)...
+2026-01-26 23:37:20 | INFO     | tick_buffer     | TickStream initialized starting from: 1769450840353
+2026-01-26 23:37:20 | INFO     | features        | Initializing Feature Engineer...
+2026-01-26 23:37:20 | INFO     | ensemble        | Loading Ensemble Agents...
+2026-01-26 23:37:22 | INFO     | ensemble        | Loaded ppo
+2026-01-26 23:37:22 | INFO     | ensemble        | Loaded dqn
+2026-01-26 23:37:22 | INFO     | ensemble        | Loaded qrdqn
+2026-01-26 23:37:22 | INFO     | ensemble        | Loaded recurrent
+2026-01-26 23:37:22 | INFO     | ensemble        | Loaded transformer
+2026-01-26 23:37:22 | INFO     | predictors      | Binary Outcome Model loaded.
+2026-01-26 23:37:22 | INFO     | predictors      | Binary Scaler loaded.
+2026-01-26 23:37:22 | INFO     | predictors      | Multi-class Outcome Model loaded.
+2026-01-26 23:37:22 | INFO     | predictors      | Multi Scaler loaded.
+2026-01-26 23:37:22 | INFO     | connector       | MT5 Connected. Code: (1, 'Success')
+2026-01-26 23:37:23 | INFO     | orbit           | Fetching M1 History for Optimization (7 Days)...
+2026-01-26 23:37:26 | INFO     | renko_optimizer | Optimization Results: BS=5.9084, Offset=4548.4329, PnL=187.0
+2026-01-26 23:37:26 | INFO     | orbit           | Replaying history to sync Renko state...
+2026-01-26 23:37:26 | INFO     | orbit           | Orbit Started. Brick: 5.9084
