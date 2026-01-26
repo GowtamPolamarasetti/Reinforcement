@@ -3,7 +3,7 @@ import logging
 # Symbol Settings
 SYMBOL = "XAUUSD" # XAUUSD.m or similar depending on broker
 TIMEFRAME = 1 # M1 (Int value for MT5 TIMEFRAME_M1 is 1)
-TIMEZONE_OFFSET = 2 # Hours to shift from UTC (e.g., UTC+2 for Broker Time)
+TIMEZONE_OFFSET = 0 # Hours to shift from UTC (e.g., UTC+2 for Broker Time)
 
 # Trading Params
 LOT_SIZE = 0.01

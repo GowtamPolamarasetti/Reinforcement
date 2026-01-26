@@ -331,3 +331,21 @@
 2026-01-27 02:06:29 | INFO     | orbit           | Orbit Started. Brick: 5.9339
 2026-01-27 02:07:24 | INFO     | orbit           | New Brick: NewBrickEvent(open=np.float64(5051.354299999999), close=np.float64(5045.420374999999), high=np.float64(5051.354299999999), low=np.float64(5045.420374999999), uptrend=False, timestamp=np.int64(1769474242920), sequence='0001110111110001010100010001111100111000011110000011000001000010001111110')
 2026-01-27 02:07:24 | ERROR    | features        | Indicator Calc Error: 'TechnicalIndicators' object has no attribute 'update_live_data'
+2026-01-27 02:13:09 | INFO     | features        | Initializing Feature Engineer...
+2026-01-27 02:13:09 | INFO     | ensemble        | Loading Ensemble Agents...
+2026-01-27 02:13:13 | INFO     | ensemble        | Loaded ppo
+2026-01-27 02:13:13 | INFO     | ensemble        | Loaded dqn
+2026-01-27 02:13:13 | INFO     | ensemble        | Loaded qrdqn
+2026-01-27 02:13:13 | INFO     | ensemble        | Loaded recurrent
+2026-01-27 02:13:13 | ERROR    | ensemble        | Failed to load transformer: No module named 'RL_Agent_Final'
+2026-01-27 02:13:14 | INFO     | predictors      | Binary Outcome Model loaded.
+2026-01-27 02:13:14 | INFO     | predictors      | Binary Scaler loaded.
+2026-01-27 02:13:14 | INFO     | predictors      | Multi-class Outcome Model loaded.
+2026-01-27 02:13:14 | INFO     | predictors      | Multi Scaler loaded.
+2026-01-27 02:13:14 | INFO     | connector       | MT5 Connected. Code: (1, 'Success')
+2026-01-27 02:13:14 | INFO     | tick_buffer     | TickStream initialized starting from: 1769467392678
+2026-01-27 02:13:14 | INFO     | orbit           | Fetching M1 History for Optimization (7 Days)...
+2026-01-27 02:13:17 | INFO     | renko_optimizer | Optimization Results: BS=5.9084, Offset=4548.4329, PnL=215.0
+2026-01-27 02:13:17 | INFO     | orbit           | Replaying history to sync Renko state (Size: 5.90843)...
+2026-01-27 02:13:17 | INFO     | orbit           | Saved Warmup Renko Snapshot to: renkos\renko_2026-01-27_02-13-17.csv (79 bricks)
+2026-01-27 02:13:17 | INFO     | orbit           | Orbit Started. Brick: 5.9084
