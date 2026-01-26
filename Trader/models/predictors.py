@@ -67,7 +67,7 @@ class OutcomePredictor:
         # Parse timestamp
         # brick is namedtuple or object with timestamp
         # Assuming brick.timestamp is datetime or int ms
-        if hasattr(brick, 'timestamp') and isinstance(brick.timestamp, (int, float)):
+        if hasattr(brick, 'timestamp') and isinstance(brick.timestamp, (int, float, np.integer, np.floating)):
            dt = pd.to_datetime(brick.timestamp, unit='ms')
         else:
            # CRITICAL: Feature extraction requires valid server timestamp for 'Hour' feature.

@@ -6,6 +6,28 @@ class TechnicalIndicators:
         self.data_path = data_path
         self.df = None
         
+    def update_live_data(self, window_df):
+        """
+        Updates the internal dataframe with the live window and recalculates indicators.
+        """
+        if window_df is None or window_df.empty:
+            return
+            
+        # Ensure proper format
+        df = window_df.copy()
+        if 'date' not in df.columns and hasattr(df.index, 'name') and df.index.name == 'date':
+             df = df.reset_index()
+             
+        # Ensure datetime
+        if 'date' in df.columns:
+             # If already datetime, good. If int/float, convert?
+             # Assuming caller passes clean DF compatible with load_data equivalent logic
+             if not pd.api.types.is_datetime64_any_dtype(df['date']):
+                 df['date'] = pd.to_datetime(df['date'], unit='s' if df['date'].iloc[0] < 1e11 else 'ms', utc=True).dt.tz_convert(None)
+        
+        self.df = df.sort_values('date').reset_index(drop=True)
+        self._calculate_indicators()
+
     def load_data(self):
         # print(f"Loading 1m data from {self.data_path}...")
         try:
