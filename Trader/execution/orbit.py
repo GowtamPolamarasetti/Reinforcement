@@ -3,6 +3,7 @@ import numpy as np
 from collections import deque
 from datetime import datetime
 import pandas as pd
+import os
 from config.settings import DEFAULT_BRICK_SIZE, DEFAULT_OFFSET, SYMBOL
 from data.connector import MT5Connector
 from data.tick_buffer import TickStream
@@ -111,8 +112,40 @@ class OrbitEngine:
             dummy_obs = np.zeros(21, dtype=np.float32)
             for _ in range(10):
                 self.obs_stack.append(dummy_obs)
+                
+            # Save Warmup Renko Snapshot
+            self._save_renko_snapshot()
             
         logger.info(f"Orbit Started. Brick: {self.brick_size:.4f}")
+        
+    def _save_renko_snapshot(self):
+        """
+        Saves the current Renko history (after warmup) to a CSV file.
+        """
+        try:
+            if not self.renko or not self.renko.history:
+                logger.warning("No Renko history to save.")
+                return
+
+            # Directory
+            save_dir = "renkos"
+            os.makedirs(save_dir, exist_ok=True)
+            
+            # Filename based on current time
+            timestamp_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            filename = f"renko_{timestamp_str}.csv"
+            filepath = os.path.join(save_dir, filename)
+            
+            # Convert to DataFrame
+            # Renko history is list of NewBrickEvent namedtuples
+            df = pd.DataFrame(self.renko.history)
+            
+            # Save
+            df.to_csv(filepath, index=False)
+            logger.info(f"Saved Warmup Renko Snapshot to: {filepath} ({len(df)} bricks)")
+            
+        except Exception as e:
+            logger.error(f"Failed to save Renko snapshot: {e}")
         
     def pulse(self):
         """
