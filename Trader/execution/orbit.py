@@ -77,6 +77,7 @@ class OrbitEngine:
             # Convert to DF
             history_df = pd.DataFrame(ticks)
             history_df['date'] = pd.to_datetime(history_df['time'], unit='s')
+            history_df.sort_values('time', inplace=True) # Ensure chronological order before replay
             
             optimizer = RenkoOptimizer()
             best_bs, best_offset, _ = optimizer.optimize(history_df)
