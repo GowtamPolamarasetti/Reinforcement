@@ -86,13 +86,17 @@ class OutcomePredictor:
                 duration_log = np.log1p(duration_sec)
         
         # Sequence
-        # brick object needs 'sequence' string? RenkoBuilder doesn't natively store it in event.
-        # But we need it. RenkoBuilder should arguably track it.
-        # Assuming 'sequence' is unavailable, we default to empty.
-        # TODO: Update RenkoBuilder to track sequence string "10101...".
-        seq = "" 
+        # Check if brick has 'sequence' field (added in RenkoBuilder)
+        if hasattr(brick, 'sequence') and brick.sequence:
+            seq = brick.sequence
+        else:
+            seq = ""
+            
         seq_len = len(seq)
-        seq_ones = 0 # Default
+        if seq_len > 0:
+            seq_ones = seq.count('1') / seq_len
+        else:
+            seq_ones = 0.0
         
         uptrend_float = 1.0 if brick.uptrend else 0.0
         
