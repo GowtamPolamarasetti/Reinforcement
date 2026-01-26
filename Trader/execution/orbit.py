@@ -140,6 +140,10 @@ class OrbitEngine:
             # Renko history is list of NewBrickEvent namedtuples
             df = pd.DataFrame(self.renko.history)
             
+            # Add readable date
+            if 'timestamp' in df.columns and not df.empty:
+                df['date'] = pd.to_datetime(df['timestamp'], unit='ms')
+            
             # Save
             df.to_csv(filepath, index=False)
             logger.info(f"Saved Warmup Renko Snapshot to: {filepath} ({len(df)} bricks)")
