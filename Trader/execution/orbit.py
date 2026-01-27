@@ -112,10 +112,24 @@ class OrbitEngine:
                 # We need ms.
                 ts_ms = int(row.name.timestamp() * 1000)
                 # Feed Open, High, Low, Close traversal to capture intra-bar bricks?
-                # RenkoBuilder.update_tick handles single price.
-                # Approx: Open -> High -> Low -> Close (if Bullish bar) could be better
-                # But simple Close update is standard for fast warmup
-                self.renko.update_tick(row['close'], ts_ms)
+                # OLD: self.renko.update_tick(row['close'], ts_ms)
+                
+                # NEW: Intra-candle traversal (High/Low) to capture wicks
+                # Logic matches create_renko_optimized_t6.py
+                p_open = row['open']
+                p_close = row['close']
+                p_high = row['high']
+                p_low = row['low']
+                
+                if p_close >= p_open:
+                    # Bullish Candle: Low -> High -> Close
+                    prices = [p_low, p_high, p_close]
+                else:
+                    # Bearish Candle: High -> Low -> Close
+                    prices = [p_high, p_low, p_close]
+                    
+                for p in prices:
+                    self.renko.update_tick(p, ts_ms)
                 
             # Pre-fill Transformer Stack (Warmup with dummy or real obs)
             # ideally we run process_signal logic during replay but without executing order.
