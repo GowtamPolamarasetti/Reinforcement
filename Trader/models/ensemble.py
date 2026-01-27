@@ -123,7 +123,11 @@ class EnsembleAgent:
             # Our training used VecFrameStack. The observation space became (10, 21).
             # predict() expects simple numpy array matching observation space.
             # If observation space is Box(10, 21), we pass (10, 21).
-            act, _ = self.models['transformer'].predict(obs_stack, deterministic=True)
+            # predictor expects flattened input matching the observation space (Box(210,)).
+            # TransformerExtractor inside the policy will reshape it back to (Batch, 10, 21).
+            # obs_stack is (10, 21). Flatten to (210,).
+            flat_stack = obs_stack.flatten()
+            act, _ = self.models['transformer'].predict(flat_stack, deterministic=True)
             score += (1 if act==1 else -1) * WEIGHTS['transformer']
             
         final_action = 1 if score > VOTE_THRESHOLD else 0
