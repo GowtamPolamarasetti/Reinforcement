@@ -117,17 +117,36 @@ class FeatureEngineer:
              # Assuming update_live_data was called in get_indicators or we call it here?
              # If Orbit calls get_indicators FIRST, then engine is updated.
              # We can reuse the engine state.
-             if self.indicators_engine.df is not None:
-                 # We need end_time. current_brick['date']? (datetime object)
-                 # m1_window_df index might be time.
-                 # Let's use latest time in engine.
-                 end_time = self.indicators_engine.df.iloc[-1]['date']
+             if self.indicators_engine.df is not None and not self.indicators_engine.df.empty:
+                 # Logic to get 'end_time'
+                 df = self.indicators_engine.df
+                 
+                 # The DF in indicators_engine usually has 'date' as column because of update_live_data logic
+                 if 'date' in df.columns:
+                     end_time = df.iloc[-1]['date']
+                 elif hasattr(df.index, 'name') and df.index.name == 'date':  
+                     end_time = df.index[-1]
+                 else:
+                     # Fallback if no date column or index name
+                     # Assuming index is date
+                     end_time = df.index[-1]
+                     
                  # Start time? Brick start?
                  # Precompute used prev_brick time.
-                 start_time = end_time - pd.Timedelta(minutes=5) # Fallback
-                 if prev_brick:
-                     start_time = prev_brick['date'] # if available
-                 
+                 try:
+                     start_time = end_time - pd.Timedelta(minutes=5) # Fallback
+                     if prev_brick and 'date' in prev_brick:
+                          # prev_brick is dict or named tuple
+                          # orbit.py passes dict for prev_brick? No, Orbit passes history[-2] which is NamedTuple
+                          # orbit.py: p_dict = prev._asdict()... oh wait calculate_state receives dictionaries
+                          if isinstance(prev_brick, dict):
+                               start_time = prev_brick.get('date', start_time)
+                          else:
+                               # It might be named tuple
+                               start_time = getattr(prev_brick, 'date', start_time)
+                 except:
+                     pass
+
                  ind_feats = self.indicators_engine.get_aggregated_features(start_time, end_time)
         except Exception as e:
              # logger.error(f"Ind Feats Error: {e}")
