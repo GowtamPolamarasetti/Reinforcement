@@ -577,3 +577,23 @@
 2026-01-27 20:30:32 | INFO     | orbit           | Ensemble Vote: -2.1333 -> Action: 0
 2026-01-27 20:31:49 | INFO     | orbit           | Orbit Stopped by User
 2026-01-27 20:31:49 | INFO     | connector       | MT5 Shutdown
+2026-01-27 20:32:40 | INFO     | features        | Initializing Feature Engineer...
+2026-01-27 20:32:41 | INFO     | ensemble        | Loading Ensemble Agents...
+2026-01-27 20:32:43 | INFO     | ensemble        | Loaded ppo
+2026-01-27 20:32:43 | INFO     | ensemble        | Loaded dqn
+2026-01-27 20:32:43 | INFO     | ensemble        | Loaded qrdqn
+2026-01-27 20:32:43 | INFO     | ensemble        | Loaded recurrent
+2026-01-27 20:32:43 | INFO     | ensemble        | Loaded transformer
+2026-01-27 20:32:44 | INFO     | predictors      | Binary Outcome Model loaded.
+2026-01-27 20:32:44 | INFO     | predictors      | Binary Scaler loaded.
+2026-01-27 20:32:44 | INFO     | predictors      | Multi-class Outcome Model loaded.
+2026-01-27 20:32:44 | INFO     | predictors      | Multi Scaler loaded.
+2026-01-27 20:32:44 | INFO     | connector       | MT5 Connected. Code: (1, 'Success')
+2026-01-27 20:32:44 | INFO     | tick_buffer     | TickStream initialized starting from: 1769533362593
+2026-01-27 20:32:44 | INFO     | orbit           | Fetching M1 History for Optimization (7 Days)...
+2026-01-27 20:32:46 | INFO     | renko_optimizer | Optimization Results: BS=5.9150, Offset=4678.7596, PnL=216.0
+2026-01-27 20:32:46 | INFO     | orbit           | Replaying history to sync Renko state (Size: 5.91496)...
+2026-01-27 20:32:46 | INFO     | orbit           | Saved Warmup Renko Snapshot to: renkos\renko_2026-01-27_20-32-46.csv (58 bricks)
+2026-01-27 20:32:46 | INFO     | orbit           | Orbit Started. Brick: 5.9150
+2026-01-27 20:33:56 | INFO     | orbit           | New Brick: NewBrickEvent(open=np.float64(5062.374736800001), close=np.float64(5068.289699200001), high=np.float64(5068.289699200001), low=np.float64(5062.374736800001), uptrend=True, timestamp=np.int64(1769533434433), sequence='00011111111000000110111111101101111100110000111000001110001')
+2026-01-27 20:33:56 | INFO     | orbit           | Ensemble Vote: 4.5705 -> Action: 1
