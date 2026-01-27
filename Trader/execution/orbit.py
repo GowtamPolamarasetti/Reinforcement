@@ -447,7 +447,30 @@ class OrbitEngine:
              padding = np.zeros((10 - len(stack_arr), 21))
              stack_arr = np.vstack([padding, stack_arr])
         
-        # 2. Inference
+        # 2. Latency Check (Catch-Up Mode)
+        # Check if brick is "Live" or "History"
+        # We compare brick timestamp (adjusted) to System Time (adjusted same way if needed)
+        # Simplest: Compare to current UTC timestamp + Offset
+        
+        system_time_ms = time.time() * 1000
+        # If brick has offset applied, we apply same to system? 
+        # In pulse: ts = t['time_msc'] + (TIMEZONE_OFFSET * 3600 * 1000)
+        # brick.timestamp from pulse ts.
+        # So we shift system time too.
+        current_adjusted_ms = system_time_ms + (TIMEZONE_OFFSET * 3600 * 1000)
+        
+        latency_ms = current_adjusted_ms - brick.timestamp
+        is_catchup = latency_ms > 60000 # 60 Seconds lag
+        
+        if is_catchup:
+             if self.renko.brick_count % 10 == 0:
+                 logger.info(f"Catching up... Brick {brick.date} (Latency: {latency_ms/1000:.1f}s)")
+             
+             # Skip Inference and Execution
+             # But we MUST update the stack (done above)
+             return
+             
+        # 3. Inference
         action, self.lstm_states, score = self.ensemble.predict(
             obs, 
             lstm_states=self.lstm_states, 
