@@ -15,6 +15,7 @@ from execution.orders import OrderExecutor
 from execution.risk import RiskManager
 from utils.logger import logger
 from utils.state import StateManager
+import MetaTrader5 as mt5
 
 class OrbitEngine:
     def __init__(self):
