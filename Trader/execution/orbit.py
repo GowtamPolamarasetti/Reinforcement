@@ -282,9 +282,58 @@ class OrbitEngine:
                         # Clear Active
                         self.state.update("active_ticket", 0)
                         self.state.update("active_entry_price", 0.0)
-                        
+
+        # 3. Check Pending Orders (Limit Fallback Monitoring)
+        pending_ticket = self.state.get("pending_ticket")
+        if pending_ticket:
+            import MetaTrader5 as mt5
+            # Is it still pending?
+            orders = mt5.orders_get(ticket=pending_ticket)
             
-        # 3. Fetch Ticks (Gap-less)
+            if not orders:
+                # It's gone from Pending. Did it fill?
+                # Check Positions
+                positions = mt5.positions_get(ticket=pending_ticket)
+                if positions:
+                    logger.info(f"Limit Order {pending_ticket} FILLED!")
+                    # Promote to Active
+                    pos = positions[0]
+                    self.state.update("active_ticket", pending_ticket)
+                    self.state.update("active_entry_price", pos.price_open)
+                    dir = 1 if pos.type == mt5.ORDER_TYPE_BUY else -1
+                    self.state.update("active_direction", dir)
+                    
+                    # Clear Pending State
+                    self.state.update("pending_ticket", 0)
+                    self.state.update("pending_be_level", 0.0)
+                else:
+                    # Cancelled or Expired?
+                    logger.info(f"Limit Order {pending_ticket} expired or cancelled externally.")
+                    self.state.update("pending_ticket", 0)
+            else:
+                # Still Pending. Check Price for Invalidation (Runs Away).
+                be_level = self.state.get("pending_be_level", 0.0)
+                direction = self.state.get("pending_direction", 0)
+                
+                cancel_needed = False
+                if direction == 1: # Buy Limit
+                    # If Bid rises ABOVE BE Level (Run away profit)
+                    curr_bid = mt5.symbol_info_tick(SYMBOL).bid
+                    if curr_bid > be_level:
+                        logger.warning(f"Pending Buy Missed Move ({curr_bid} > {be_level}). Cancelling.")
+                        cancel_needed = True
+                elif direction == -1: # Sell Limit
+                    # If Ask drops BELOW BE Level (Run away profit)
+                    curr_ask = mt5.symbol_info_tick(SYMBOL).ask
+                    if curr_ask < be_level:
+                        logger.warning(f"Pending Sell Missed Move ({curr_ask} < {be_level}). Cancelling.")
+                        cancel_needed = True
+                        
+                if cancel_needed:
+                    if self.orders.cancel_order(pending_ticket):
+                        self.state.update("pending_ticket", 0)
+            
+        # 4. Fetch Ticks (Gap-less)
         new_ticks = self.clock.fetch()
         if not new_ticks:
             time.sleep(0.001) 
@@ -417,6 +466,11 @@ class OrbitEngine:
             if self.state.get("active_ticket", 0) != 0:
                 logger.info("Signal Skipped: Trade already active.")
                 return
+            
+            # Check if we have a pending Limit Order?
+            if self.state.get("pending_ticket", 0) != 0:
+                logger.info("Signal Skipped: Pending Limit Order active.")
+                return
 
             # Entry at Brick Close (Current Price)
             entry = brick.close
@@ -429,11 +483,67 @@ class OrbitEngine:
                 sl = entry - dist
                 tp = entry + dist
                 direction = 1
+                
+                # SLIPPAGE CHECK
+                # Get current Ask
+                current_price = mt5.symbol_info_tick(SYMBOL).ask
+                slippage = current_price - entry
+                
+                # Max Slippage: 8% of Brick
+                max_slip = self.brick_size * 0.08
+                
+                # BE Level (Run-Away Invalidation): 0.3125 * Brick *IN PROFIT*
+                # If Price > Entry + 0.3125*Brick, we missed the move.
+                be_dist = self.brick_size * 0.3125
+                be_level = entry + be_dist
+                
+                if slippage > max_slip:
+                    logger.warning(f"High Slippage ({slippage:.5f} > {max_slip:.5f}). switch to Limit.")
+                    
+                    # Pre-Check: Has price already run away?
+                    current_bid = mt5.symbol_info_tick(SYMBOL).bid
+                    if current_bid > be_level:
+                         logger.warning(f"Limit Order Skipped: Price {current_bid} ran away past {be_level}")
+                         return
+                         
+                    # Place Limit @ Entry
+                    ticket = self.orders.send_limit_order(direction, entry, sl, tp)
+                    if ticket:
+                        self.state.update("pending_ticket", ticket)
+                        self.state.update("pending_be_level", be_level)
+                        self.state.update("pending_direction", direction)
+                    return
             else:
                 # Sell
                 sl = entry + dist
                 tp = entry - dist
                 direction = -1
+                
+                # SLIPPAGE CHECK
+                # Get current Bid
+                current_price = mt5.symbol_info_tick(SYMBOL).bid
+                slippage = entry - current_price 
+                
+                max_slip = self.brick_size * 0.08
+                
+                # BE Level (Run-Away Invalidation): 0.3125 * Brick *IN PROFIT* (Below Entry)
+                be_dist = self.brick_size * 0.3125
+                be_level = entry - be_dist
+                
+                if slippage > max_slip:
+                     logger.warning(f"High Slippage ({slippage:.5f} > {max_slip:.5f}). switch to Limit.")
+                     
+                     current_ask = mt5.symbol_info_tick(SYMBOL).ask
+                     if current_ask < be_level:
+                          logger.warning(f"Limit Order Skipped: Price {current_ask} ran away past {be_level}")
+                          return
+                          
+                     ticket = self.orders.send_limit_order(direction, entry, sl, tp)
+                     if ticket:
+                        self.state.update("pending_ticket", ticket)
+                        self.state.update("pending_be_level", be_level)
+                        self.state.update("pending_direction", direction)
+                     return
                 
             ticket = self.orders.send_market_order(direction, sl, tp)
             

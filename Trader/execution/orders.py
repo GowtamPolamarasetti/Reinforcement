@@ -120,3 +120,50 @@ class OrderExecutor:
                 }
                 mt5.order_send(request)
                 logger.info(f"Closed position {pos.ticket}")
+
+    def send_limit_order(self, action, price, sl, tp):
+        """
+        Sends a Limit Order at a specific price.
+        """
+        order_type = mt5.ORDER_TYPE_BUY_LIMIT if action == 1 else mt5.ORDER_TYPE_SELL_LIMIT
+        
+        request = {
+            "action": mt5.TRADE_ACTION_PENDING,
+            "symbol": SYMBOL,
+            "volume": float(LOT_SIZE),
+            "type": order_type,
+            "price": float(price),
+            "sl": float(sl),
+            "tp": float(tp),
+            "deviation": DEVIATION,
+            "magic": MAGIC_NUMBER,
+            "comment": "RL_Limit_Fallback",
+            "type_time": mt5.ORDER_TIME_DAY, # Expires at end of day
+            "type_filling": mt5.ORDER_FILLING_RETURN,
+        }
+        
+        result = mt5.order_send(request)
+        if result.retcode != mt5.TRADE_RETCODE_DONE:
+            logger.error(f"Limit Order Failed: {result.retcode} - {result.comment}")
+            return None
+            
+        logger.info(f"Limit Order Placed: {result.order} @ {price}")
+        return result.order
+
+    def cancel_order(self, ticket):
+        """
+        Cancels a pending order.
+        """
+        request = {
+            "action": mt5.TRADE_ACTION_REMOVE,
+            "order": ticket,
+            "magic": MAGIC_NUMBER,
+        }
+        
+        result = mt5.order_send(request)
+        if result.retcode != mt5.TRADE_RETCODE_DONE:
+            logger.error(f"Cancel Failed for {ticket}: {result.retcode}")
+            return False
+            
+        logger.info(f"Cancelled Order {ticket}")
+        return True

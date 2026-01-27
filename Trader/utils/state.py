@@ -11,6 +11,12 @@ class StateManager:
             "current_day": None,
             "daily_pnl": 0.0,
             "trades_today": 0,
+            "active_ticket": 0,
+            "active_entry_price": 0.0,
+            "active_direction": 0,
+            "pending_ticket": 0,
+            "pending_be_level": 0.0,
+            "pending_direction": 0,
             "optimization": {
                 "brick_size": 0.0,
                 "grid_offset": 0.0
