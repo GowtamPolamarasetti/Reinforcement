@@ -161,6 +161,30 @@ class OrbitEngine:
         except Exception as e:
             logger.error(f"Failed to save Renko snapshot: {e}")
         
+    def get_normalized_time_left(self):
+        """
+        Calculates normalized time left in the trading day [0, 1].
+        """
+        # UTC+Offset (Broker Time)
+        now = datetime.utcnow() + timedelta(hours=TIMEZONE_OFFSET)
+        
+        # Session End: 23:59:00
+        session_end = now.replace(hour=23, minute=59, second=0, microsecond=0)
+        
+        # If we are past 23:59, maybe it's next day? Or wait for reset?
+        # Assuming we run 24h, session resets at 00:00.
+        # Simple distance: Seconds until 23:59 today.
+        
+        time_left_sec = (session_end - now).total_seconds()
+        
+        # Total seconds in day (86400) or trading session?
+        # Predictor trained on full day decay usually.
+        # Normalize by 24h
+        norm = time_left_sec / 86400.0
+        
+        # Clip
+        return max(0.0, min(1.0, norm))
+
     def pulse(self):
         """
         Single heartbeat of the loop.
@@ -169,13 +193,104 @@ class OrbitEngine:
         if not self.risk.check_daily_limit():
             return False
             
-        # 2. Fetch Ticks (Gap-less)
+        # 2. Check Active Trade Outcome
+        # We check deals to see if our active trade closed
+        # We rely on OrderExecutor to track 'active_ticket' or we check positions
+        # Simplified: Check active positions. If our stored ticket handles missing position, it closed.
+        
+        active_ticket = self.state.get("active_ticket")
+        if active_ticket:
+            # Check if still open
+            import MetaTrader5 as mt5
+            positions = mt5.positions_get(ticket=active_ticket)
+            
+            if not positions:
+                # IT CLOSED! Find out why.
+                # history_deals_get (from=start of today, to=now)
+                # Optimization: just check last few deals
+                from_time = datetime.now() - timedelta(hours=24) # Safe window
+                deals = mt5.history_deals_get(date_from=from_time, date_to=datetime.now() + timedelta(minutes=1))
+                
+                if deals:
+                    # Find our ticket
+                    my_deal = None
+                    for d in reversed(deals): # check latest first
+                         if d.position_id == active_ticket and d.entry == mt5.DEAL_ENTRY_OUT:
+                             my_deal = d
+                             break
+                             
+                    if my_deal:
+                        # Determine Outcome
+                        # 1. BE Check (Approximation)
+                        # Deviation from expected PnL?
+                        # Or Deviation from Entry Price
+                        # Close Price vs Market Price at Entry (hard to get exact)
+                        # Use Profit.
+                        # BUT user said: BE can have +ve or -ve.
+                        # Strict check: Distance from Entry.
+                        
+                        entry_price = self.state.get("active_entry_price", 0.0)
+                        close_price = my_deal.price
+                        direction = self.state.get("active_direction", 0) # 1 or -1
+                        
+                        # Thresholds
+                        be_threshold = self.brick_size * 0.1 # 10% of brick
+                        win_threshold = self.brick_size * 0.8 # 80% of brick
+                        
+                        price_diff = (close_price - entry_price) * direction
+                        # Warning: 'price_diff' is Points * Dir.
+                        
+                        unit_pnl = 0.0
+                        outcome_str = "BE"
+                        
+                        if abs(price_diff) < be_threshold or my_deal.reason == mt5.DEAL_REASON_SL:
+                            # Re-check SL reason - could be Real SL or BE SL.
+                            # If price is near entry, it's BE.
+                            if abs(close_price - entry_price) < be_threshold:
+                                unit_pnl = 0.0 # BE
+                                outcome_str = "BE"
+                            elif price_diff <= -win_threshold:
+                                unit_pnl = -0.5 # LOSS
+                                outcome_str = "LOSS"
+                            else:
+                                # Grey area? Treat as BE/Scratch or Loss?
+                                # Default to Loss if negative
+                                if price_diff < 0: 
+                                    unit_pnl = -0.5
+                                    outcome_str = "LOSS"
+                                else:
+                                    unit_pnl = 0.5
+                                    outcome_str = "WIN"
+                        else:
+                            # Standard checking
+                            if price_diff >= win_threshold:
+                                unit_pnl = 0.5
+                                outcome_str = "WIN"
+                            elif price_diff <= -win_threshold:
+                                unit_pnl = -0.5
+                                outcome_str = "LOSS"
+                            else:
+                                unit_pnl = 0.0
+                                outcome_str = "BE"
+                                
+                        logger.info(f"Trade Closed call. Outcome: {outcome_str} (PnL: {unit_pnl})")
+                        
+                        # UPDATE STATE
+                        current_daily = self.state.get("daily_pnl", 0.0)
+                        self.state.update("daily_pnl", current_daily + unit_pnl)
+                        
+                        # Clear Active
+                        self.state.update("active_ticket", 0)
+                        self.state.update("active_entry_price", 0.0)
+                        
+            
+        # 3. Fetch Ticks (Gap-less)
         new_ticks = self.clock.fetch()
         if not new_ticks:
             time.sleep(0.001) 
             return True
             
-        # 3. Process Ticks
+        # 4. Process Ticks
         for t in new_ticks:
             price = t['bid'] 
             # Apply Timezone Offset to Live Ticks
@@ -186,23 +301,14 @@ class OrbitEngine:
             t_shifted['time'] = t['time'] + (TIMEZONE_OFFSET * 3600)
             
             # Update M1 Accumulator
-            # Real-time M1 bar construction
             self.update_m1_buffer(t_shifted)
             
             # A. Update Renko
             new_bricks = self.renko.update_tick(price, ts)
             
             # B. Intra-Brick Logic (BE Check)
-            # Only if we have an active position managed by us
-            # We assume One Active Trade per Symbol
             be_price = self.renko.get_be_price()
             if be_price:
-                 # Check condition
-                 # If Long (Uptrend=1): Trigger if Price >= BE_Price
-                 # If Short (Uptrend=-1): Trigger if Price <= BE_Price
-                 
-                 # Optimization: Only check if BE not already moved?
-                 # OrderExecutor should handle idempotency
                  should_trigger = False
                  if self.renko.uptrend == 1 and price >= be_price:
                      should_trigger = True
@@ -210,10 +316,6 @@ class OrbitEngine:
                      should_trigger = True
                      
                  if should_trigger:
-                     # Move SL to Entry
-                     # We need the current active ticket. Assuming OrderExecutor knows it 
-                     # or we find it via positions.
-                     # We'll call a generic method
                      self.orders.move_sl_to_entry(SYMBOL)
             
             # C. New Brick Handling
@@ -266,21 +368,31 @@ class OrbitEngine:
         
         preds = self.predictors.predict(brick, self.renko.history[:-1], ind_dict) 
         
+        # DYNAMIC TIME LEFT and PNL from State
+        time_left = self.get_normalized_time_left()
+        pnl = self.state.get("daily_pnl", 0.0)
+        
         obs = self.features.calculate_state(
             b_dict, p_dict, self.m1_buffer,
             preds, 
-            self.state.get("daily_pnl", 0.0),
-            0.5 
+            pnl,
+            time_left 
         )
+        
+        # --- FEATURE MASKING FIX ---
+        # Training Environment masks Structure Features [3, 4, 5, 6]
+        # Indices: 
+        # 0,1: Regime
+        # 2: BiLSTM
+        # 3,4,5,6: Structure (Uptrend, BrickSize, Duration, Flip)
+        obs[3:7] = 0.0
+        # ---------------------------
         
         # Update Stack
         self.obs_stack.append(obs)
         # Prepare Stack for Transformer (1, 10, 21)
-        # Pad if not full (though we warmed up)
         stack_arr = np.array(self.obs_stack)
-        # Ensure shape (10, 21)
         if len(stack_arr) < 10:
-             # Pad
              padding = np.zeros((10 - len(stack_arr), 21))
              stack_arr = np.vstack([padding, stack_arr])
         
@@ -289,7 +401,7 @@ class OrbitEngine:
             obs, 
             lstm_states=self.lstm_states, 
             episode_starts=self.episode_starts,
-            obs_stack=stack_arr # Pass stack to ensemble!
+            obs_stack=stack_arr 
         )
         self.episode_starts = np.array([False])
         
@@ -297,14 +409,17 @@ class OrbitEngine:
         
         # 3. Execution (1:1 Ratio)
         if action == 1:
+            # Check if we already have an active trade?
+            # Ideally the RL agent decides WHEN to enter.
+            # If we limit to 1 trade at a time, we skip.
+            if self.state.get("active_ticket", 0) != 0:
+                logger.info("Signal Skipped: Trade already active.")
+                return
+
             # Entry at Brick Close (Current Price)
             entry = brick.close
             
             # R/R = 1:1
-            # SL Distance = 1 Brick
-            # TP Distance = 1 Brick
-            # BE Logic is handled in pulse()
-            
             dist = self.brick_size
             
             if brick.uptrend:
@@ -318,7 +433,12 @@ class OrbitEngine:
                 tp = entry - dist
                 direction = -1
                 
-            self.orders.send_market_order(direction, sl, tp)
+            ticket = self.orders.send_market_order(direction, sl, tp)
+            
+            if ticket:
+                self.state.update("active_ticket", ticket)
+                self.state.update("active_entry_price", entry)
+                self.state.update("active_direction", direction)
 
     def run(self):
         self.start()
