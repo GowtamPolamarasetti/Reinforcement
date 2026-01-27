@@ -41,15 +41,37 @@ class EnsembleAgent:
         load_one('recurrent', RecurrentPPO, M_RECURRENT_PATH)
         
         # Transformer needs custom object
+        # PICKLE FIX: Map 'RL_Agent_Final.algo.transformer_policy' to 'models.transformer_policy'
         try:
-            # Absolute path import if possible, or relative
-            # We need to ensure transformer_policy is importable.
-            # I will assume `from models.transformer_policy import TransformerExtractor` works
-            # AFTER I copy the file.
+            import sys
+            import types
+            from models import transformer_policy
+            
+            # Create dummy 'RL_Agent_Final' module
+            if 'RL_Agent_Final' not in sys.modules:
+                rl_agent_final = types.ModuleType('RL_Agent_Final')
+                sys.modules['RL_Agent_Final'] = rl_agent_final
+                
+                # Create dummy 'RL_Agent_Final.algo'
+                algo = types.ModuleType('RL_Agent_Final.algo')
+                rl_agent_final.algo = algo
+                sys.modules['RL_Agent_Final.algo'] = algo
+                
+                # Create dummy 'RL_Agent_Final.transformer_policy' (Attempt 1)
+                rl_agent_final.transformer_policy = transformer_policy
+                sys.modules['RL_Agent_Final.transformer_policy'] = transformer_policy
+                
+                # Create dummy 'RL_Agent_Final.algo.transformer_policy' (Attempt 2 - nested)
+                algo.transformer_policy = transformer_policy
+                sys.modules['RL_Agent_Final.algo.transformer_policy'] = transformer_policy
+                
             from models.transformer_policy import TransformerExtractor
             load_one('transformer', PPO, M_TRANSFORMER_PATH, custom_objects={'features_extractor_class': TransformerExtractor})
-        except ImportError:
-            logger.error("Transformer Policy module not found. Transformer model skipped.")
+            
+        except ImportError as e:
+            logger.error(f"Transformer Policy module load error: {e}")
+        except Exception as e:
+            logger.error(f"Transformer Pickle Patched Load Failed: {e}")
 
     def predict(self, obs, lstm_states=None, episode_starts=None, obs_stack=None):
         """
