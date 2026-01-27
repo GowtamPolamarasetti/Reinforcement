@@ -551,3 +551,29 @@
 2026-01-27 20:12:59 | INFO     | orbit           | Orbit Started. Brick: 5.9150
 2026-01-27 20:18:27 | INFO     | orbit           | New Brick: NewBrickEvent(open=np.float64(5074.7448872), close=np.float64(5068.8299248), high=np.float64(5074.7448872), low=np.float64(5068.8299248), uptrend=False, timestamp=np.int64(1769532506414), sequence='00000000011111111000000110111111101101111100011100001100001110')
 2026-01-27 20:18:27 | ERROR    | features        | Indicator Calc Error: 'date'
+2026-01-27 20:24:17 | INFO     | features        | Initializing Feature Engineer...
+2026-01-27 20:24:18 | INFO     | ensemble        | Loading Ensemble Agents...
+2026-01-27 20:24:19 | INFO     | ensemble        | Loaded ppo
+2026-01-27 20:24:19 | INFO     | ensemble        | Loaded dqn
+2026-01-27 20:24:19 | INFO     | ensemble        | Loaded qrdqn
+2026-01-27 20:24:19 | INFO     | ensemble        | Loaded recurrent
+2026-01-27 20:24:19 | INFO     | ensemble        | Loaded transformer
+2026-01-27 20:24:19 | INFO     | predictors      | Binary Outcome Model loaded.
+2026-01-27 20:24:19 | INFO     | predictors      | Binary Scaler loaded.
+2026-01-27 20:24:19 | INFO     | predictors      | Multi-class Outcome Model loaded.
+2026-01-27 20:24:19 | INFO     | predictors      | Multi Scaler loaded.
+2026-01-27 20:24:19 | INFO     | connector       | MT5 Connected. Code: (1, 'Success')
+2026-01-27 20:24:19 | INFO     | tick_buffer     | TickStream initialized starting from: 1769532858363
+2026-01-27 20:24:20 | INFO     | orbit           | Fetching M1 History for Optimization (7 Days)...
+2026-01-27 20:24:22 | INFO     | renko_optimizer | Optimization Results: BS=5.9150, Offset=4678.7596, PnL=215.0
+2026-01-27 20:24:22 | INFO     | orbit           | Replaying history to sync Renko state (Size: 5.91496)...
+2026-01-27 20:24:22 | INFO     | orbit           | Saved Warmup Renko Snapshot to: renkos\renko_2026-01-27_20-24-22.csv (57 bricks)
+2026-01-27 20:24:22 | INFO     | orbit           | Orbit Started. Brick: 5.9150
+2026-01-27 20:25:31 | INFO     | orbit           | New Brick: NewBrickEvent(open=np.float64(5062.254812000001), close=np.float64(5056.339849600001), high=np.float64(5062.254812000001), low=np.float64(5056.339849600001), uptrend=False, timestamp=np.int64(1769532930069), sequence='0000011111111000000110111111101101111100110001100000111000')
+2026-01-27 20:25:31 | ERROR    | features        | Indicator Calc Error: 'date'
+2026-01-27 20:25:31 | INFO     | orbit           | Ensemble Vote: -2.1333 -> Action: 0
+2026-01-27 20:30:32 | INFO     | orbit           | New Brick: NewBrickEvent(open=np.float64(5056.339849600001), close=np.float64(5050.424887200001), high=np.float64(5056.339849600001), low=np.float64(5050.424887200001), uptrend=False, timestamp=np.int64(1769533231252), sequence='00000111111110000001101111111011011111001100011000001110000')
+2026-01-27 20:30:32 | ERROR    | features        | Indicator Calc Error: 'date'
+2026-01-27 20:30:32 | INFO     | orbit           | Ensemble Vote: -2.1333 -> Action: 0
+2026-01-27 20:31:49 | INFO     | orbit           | Orbit Stopped by User
+2026-01-27 20:31:49 | INFO     | connector       | MT5 Shutdown
