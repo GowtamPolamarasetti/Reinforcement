@@ -371,6 +371,8 @@ class OrbitEngine:
         # DYNAMIC TIME LEFT and PNL from State
         time_left = self.get_normalized_time_left()
         pnl = self.state.get("daily_pnl", 0.0)
+        # Fix: Clip PnL to match Training Limits [-5, 5]
+        pnl = max(-5.0, min(5.0, pnl))
         
         obs = self.features.calculate_state(
             b_dict, p_dict, self.m1_buffer,
