@@ -15,15 +15,24 @@ class TechnicalIndicators:
             
         # Ensure proper format
         df = window_df.copy()
-        if 'date' not in df.columns and hasattr(df.index, 'name') and df.index.name == 'date':
-             df = df.reset_index()
+        
+        # FIX: If 'date' is not in columns, assume index is date and reset.
+        if 'date' not in df.columns:
+            df = df.reset_index()
+            # If index was unnamed, it becomes 'index'. Rename it.
+            if 'date' not in df.columns:
+                # First column is likely the old index
+                df.rename(columns={df.columns[0]: 'date'}, inplace=True)
              
         # Ensure datetime
         if 'date' in df.columns:
              # If already datetime, good. If int/float, convert?
              # Assuming caller passes clean DF compatible with load_data equivalent logic
              if not pd.api.types.is_datetime64_any_dtype(df['date']):
-                 df['date'] = pd.to_datetime(df['date'], unit='s' if df['date'].iloc[0] < 1e11 else 'ms', utc=True).dt.tz_convert(None)
+                 try:
+                     df['date'] = pd.to_datetime(df['date'], unit='s' if df['date'].iloc[0] < 1e11 else 'ms', utc=True).dt.tz_convert(None)
+                 except:
+                     pass
         
         self.df = df.sort_values('date').reset_index(drop=True)
         self._calculate_indicators()
