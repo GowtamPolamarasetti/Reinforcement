@@ -226,77 +226,79 @@ class OrbitEngine:
                 from_time = datetime.now() - timedelta(hours=24) # Safe window
                 deals = mt5.history_deals_get(date_from=from_time, date_to=datetime.now() + timedelta(minutes=1))
                 
+                my_deal = None
                 if deals:
                     # Find our ticket
-                    my_deal = None
                     for d in reversed(deals): # check latest first
                          if d.position_id == active_ticket and d.entry == mt5.DEAL_ENTRY_OUT:
                              my_deal = d
                              break
                              
-                    if my_deal:
-                        # Determine Outcome
-                        # 1. BE Check (Approximation)
-                        # Deviation from expected PnL?
-                        # Or Deviation from Entry Price
-                        # Close Price vs Market Price at Entry (hard to get exact)
-                        # Use Profit.
-                        # BUT user said: BE can have +ve or -ve.
-                        # Strict check: Distance from Entry.
-                        
-                        entry_price = self.state.get("active_entry_price", 0.0)
-                        close_price = my_deal.price
-                        direction = self.state.get("active_direction", 0) # 1 or -1
-                        
-                        # Thresholds
-                        be_threshold = self.brick_size * 0.1 # 10% of brick
-                        win_threshold = self.brick_size * 0.8 # 80% of brick
-                        
-                        price_diff = (close_price - entry_price) * direction
-                        # Warning: 'price_diff' is Points * Dir.
-                        
-                        unit_pnl = 0.0
-                        outcome_str = "BE"
-                        
-                        if abs(price_diff) < be_threshold or my_deal.reason == mt5.DEAL_REASON_SL:
-                            # Re-check SL reason - could be Real SL or BE SL.
-                            # If price is near entry, it's BE.
-                            if abs(close_price - entry_price) < be_threshold:
-                                unit_pnl = 0.0 # BE
-                                outcome_str = "BE"
-                            elif price_diff <= -win_threshold:
-                                unit_pnl = -0.5 # LOSS
-                                outcome_str = "LOSS"
-                            else:
-                                # Grey area? Treat as BE/Scratch or Loss?
-                                # Default to Loss if negative
-                                if price_diff < 0: 
-                                    unit_pnl = -0.5
-                                    outcome_str = "LOSS"
-                                else:
-                                    unit_pnl = 0.5
-                                    outcome_str = "WIN"
+                if my_deal:
+                    # Determine Outcome
+                    # 1. BE Check (Approximation)
+                    # Deviation from expected PnL?
+                    # Or Deviation from Entry Price
+                    # Close Price vs Market Price at Entry (hard to get exact)
+                    # Use Profit.
+                    # BUT user said: BE can have +ve or -ve.
+                    # Strict check: Distance from Entry.
+                    
+                    entry_price = self.state.get("active_entry_price", 0.0)
+                    close_price = my_deal.price
+                    direction = self.state.get("active_direction", 0) # 1 or -1
+                    
+                    # Thresholds
+                    be_threshold = self.brick_size * 0.1 # 10% of brick
+                    win_threshold = self.brick_size * 0.8 # 80% of brick
+                    
+                    price_diff = (close_price - entry_price) * direction
+                    # Warning: 'price_diff' is Points * Dir.
+                    
+                    unit_pnl = 0.0
+                    outcome_str = "BE"
+                    
+                    if abs(price_diff) < be_threshold or my_deal.reason == mt5.DEAL_REASON_SL:
+                        # Re-check SL reason - could be Real SL or BE SL.
+                        # If price is near entry, it's BE.
+                        if abs(close_price - entry_price) < be_threshold:
+                            unit_pnl = 0.0 # BE
+                            outcome_str = "BE"
+                        elif price_diff <= -win_threshold:
+                            unit_pnl = -0.5 # LOSS
+                            outcome_str = "LOSS"
                         else:
-                            # Standard checking
-                            if price_diff >= win_threshold:
-                                unit_pnl = 0.5
-                                outcome_str = "WIN"
-                            elif price_diff <= -win_threshold:
+                            # Grey area? Treat as BE/Scratch or Loss?
+                            # Default to Loss if negative
+                            if price_diff < 0: 
                                 unit_pnl = -0.5
                                 outcome_str = "LOSS"
                             else:
-                                unit_pnl = 0.0
-                                outcome_str = "BE"
-                                
-                        logger.info(f"Trade Closed call. Outcome: {outcome_str} (PnL: {unit_pnl})")
-                        
-                        # UPDATE STATE
-                        current_daily = self.state.get("daily_pnl", 0.0)
-                        self.state.update("daily_pnl", current_daily + unit_pnl)
-                        
-                        # Clear Active
-                        self.state.update("active_ticket", 0)
-                        self.state.update("active_entry_price", 0.0)
+                                unit_pnl = 0.5
+                                outcome_str = "WIN"
+                    else:
+                        # Standard checking
+                        if price_diff >= win_threshold:
+                            unit_pnl = 0.5
+                            outcome_str = "WIN"
+                        elif price_diff <= -win_threshold:
+                            unit_pnl = -0.5
+                            outcome_str = "LOSS"
+                        else:
+                            unit_pnl = 0.0
+                            outcome_str = "BE"
+                            
+                    logger.info(f"Trade Closed call. Outcome: {outcome_str} (PnL: {unit_pnl})")
+                    
+                    # UPDATE STATE
+                    current_daily = self.state.get("daily_pnl", 0.0)
+                    self.state.update("daily_pnl", current_daily + unit_pnl)
+                else:
+                    logger.warning(f"Trade {active_ticket} closed but Deal not found based on history lookup.")
+                
+                # Clear Active (ALWAYS, if position is gone)
+                self.state.update("active_ticket", 0)
+                self.state.update("active_entry_price", 0.0)
 
         # 3. Check Pending Orders (Limit Fallback Monitoring)
         pending_ticket = self.state.get("pending_ticket")
