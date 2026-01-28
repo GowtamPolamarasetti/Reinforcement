@@ -478,7 +478,7 @@ class OrbitEngine:
         is_catchup = latency_ms > 60000 # 60 Seconds lag
         
         if is_catchup:
-             if self.renko.brick_count % 10 == 0:
+             if len(self.renko.history) % 10 == 0:
                  logger.info(f"Catching up... Brick {brick.date} (Latency: {latency_ms/1000:.1f}s)")
              
              # Skip Inference and Execution
