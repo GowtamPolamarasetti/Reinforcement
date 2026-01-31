@@ -42,9 +42,11 @@ class OrbitEngine:
         self.orders = OrderExecutor()
         self.risk = RiskManager(self.state)
         
+
         # Runtime State
         self.lstm_states = None
         self.episode_starts = np.ones((1,), dtype=bool)
+        self.current_date = datetime.utcnow().date() # Initialize Date Tracker
         
         # Transformer Buffer (Stack of 10 Observations)
         self.obs_stack = deque(maxlen=10)
@@ -200,12 +202,79 @@ class OrbitEngine:
         # Clip
         return max(0.0, min(1.0, norm))
 
+
+    def check_new_day(self):
+        """
+        Checks if the UTC day has changed.
+        If yes, resets PnL and Re-initializes Renko to match Training Environment.
+        """
+        now = datetime.utcnow()
+        today = now.date()
+        
+        if self.current_date is None:
+            self.current_date = today
+            return
+            
+        if today > self.current_date:
+            logger.info(f"Daily Reset Detected: {self.current_date} -> {today}")
+            
+            # 1. Reset PnL
+            self.state.update("daily_pnl", 0.0)
+            logger.info("Daily PnL reset to 0.0")
+            
+            # 2. Reset Renko
+            # To be precise, we want the Open Price of the New Day.
+            # If we call this exactly at 00:00:01, current tick price is close to Open.
+            # Ideally, fetch the M1 bar for 00:00 to get exact Open.
+            
+            import MetaTrader5 as mt5
+            # Fetch last 10 mins to find 00:00 candle
+            rates = mt5.copy_rates_from_pos(SYMBOL, mt5.TIMEFRAME_M1, 0, 10)
+            
+            start_price = None
+            if rates is not None and len(rates) > 0:
+                # Look for the bar with time that floor's to today 00:00
+                # But wait, copy_rates returns timestamp.
+                # Today 00:00 UTC = ?
+                # We need to be careful with Timezones.
+                # Simplest approach: Use CURRENT Bid price as the "Open" for our session.
+                # In live trading, the "Open" of the day relative to our session is "Now".
+                tick = mt5.symbol_info_tick(SYMBOL)
+                start_price = tick.bid
+            else:
+                # Fallback
+                start_price = mt5.symbol_info_tick(SYMBOL).bid
+                
+            logger.info(f"Re-initializing Renko with New Day Open: {start_price}")
+            
+            # Destroy and Recreate
+            # Use same brick size / offset as optimized (or default)
+            self.renko = RenkoBuilder(self.brick_size, start_price, self.offset)
+            
+            # 3. Reset State Buffers
+            self.obs_stack.clear()
+            # Refill with zeros
+            dummy_obs = np.zeros(21, dtype=np.float32)
+            for _ in range(10):
+                self.obs_stack.append(dummy_obs)
+                
+            self.lstm_states = None
+            self.episode_starts = np.ones((1,), dtype=bool)
+            
+            # Update Date
+            self.current_date = today
+            logger.info("Daily Reset Complete. System Ready.")
+
     def pulse(self):
         """
         Single heartbeat of the loop.
         """
+        # 0. Daily Reset Check
+        self.check_new_day()
+        
         # 1. Risk Check
         if not self.risk.check_daily_limit():
+            # ... rest of pulse code ...
             return False
             
         # 2. Check Active Trade Outcome
