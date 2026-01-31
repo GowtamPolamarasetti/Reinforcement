@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from numba import jit
 from utils.logger import logger
+from config.settings import BRICK_SIZE_FACTOR
 
 # ==========================================
 # Core Renko Logic (Numba Optimized)
@@ -198,8 +199,8 @@ class RenkoOptimizer:
         target_open = target_data.iloc[0]['open'] if not target_data.empty else df.iloc[-1]['close']
         
         # Brick Size calc
-        # Factor 0.00118 comes from (0.00236 / 2)
-        brick_size = target_open * 0.00118
+        # Factor comes from settings
+        brick_size = target_open * BRICK_SIZE_FACTOR
         
         # Offset Candidates
         # Scan from Anchor Low to High

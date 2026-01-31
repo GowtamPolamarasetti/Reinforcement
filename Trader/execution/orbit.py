@@ -4,7 +4,7 @@ from collections import deque
 from datetime import datetime, timedelta
 import pandas as pd
 import os
-from config.settings import DEFAULT_BRICK_SIZE, DEFAULT_OFFSET, SYMBOL, TIMEZONE_OFFSET
+from config.settings import DEFAULT_BRICK_SIZE, DEFAULT_OFFSET, SYMBOL, TIMEZONE_OFFSET, BRICK_SIZE_FACTOR
 from data.connector import MT5Connector
 from data.tick_buffer import TickStream
 from data.renko import RenkoBuilder
@@ -42,7 +42,6 @@ class OrbitEngine:
         self.orders = OrderExecutor()
         self.risk = RiskManager(self.state)
         
-
         # Runtime State
         self.lstm_states = None
         self.episode_starts = np.ones((1,), dtype=bool)
@@ -63,85 +62,136 @@ class OrbitEngine:
         # Initialize TickStream NOW, when MT5 is connected
         self.clock = TickStream()
             
-        # Optimization & Warmup Logic
+        # Optimization & Warmup Logic delegated to session init
+        self._initialize_session()
+        
+    def _initialize_session(self, force_history_fetch=True):
+        """
+        Full Session Initialization:
+        1. Fetch History (if needed)
+        2. Optimize Renko Params (Size, Anchor)
+        3. Find Startup Candle (First hit of Anchor)
+        4. Replay History to build State
+        """
         import MetaTrader5 as mt5
         from data.renko_optimizer import RenkoOptimizer
         
-        logger.info("Fetching M1 History for Optimization (7 Days)...")
-        days_back = 7
+        logger.info("Initializing Session...")
         
-        ticks = mt5.copy_rates_from_pos(SYMBOL, mt5.TIMEFRAME_M1, 0, 1440 * days_back)
+        history_df = None
+        if force_history_fetch:
+            logger.info("Fetching M1 History for Optimization (7 Days)...")
+            days_back = 7
+            ticks = mt5.copy_rates_from_pos(SYMBOL, mt5.TIMEFRAME_M1, 0, 1440 * days_back)
+            
+            if ticks is None or len(ticks) == 0:
+                logger.warning("History Fetch Failed. Using Default Fallback.")
+                # Fallback: Current Price as Anchor
+                start_price = mt5.symbol_info_tick(SYMBOL).ask
+                self.brick_size = start_price * BRICK_SIZE_FACTOR
+                # self.renko = RenkoBuilder(self.brick_size, start_price) # Will happen below if we fake DF
+                # Use tiny fake DF to trigger fallback logic below or just handle here?
+                # Handling here for safety
+                self.renko = RenkoBuilder(self.brick_size, start_price)
+                return
+            else:
+                # Convert to DF
+                history_df = pd.DataFrame(ticks)
+                history_df['time'] = history_df['time'] + (TIMEZONE_OFFSET * 3600)
+                history_df['date'] = pd.to_datetime(history_df['time'], unit='s')
+                history_df.rename(columns={'tick_volume': 'volume'}, inplace=True)
         
-        if ticks is None or len(ticks) == 0:
-            logger.warning("History Fetch Failed. Using default Fallback.")
-            start_price = mt5.symbol_info_tick(SYMBOL).ask
-            self.brick_size = start_price * 0.00118
-            self.renko = RenkoBuilder(self.brick_size, start_price, 0.0)
+        if history_df is None or history_df.empty:
+             return
+
+        # Optimize
+        optimizer = RenkoOptimizer()
+        best_bs, best_anchor, _ = optimizer.optimize(history_df)
+        
+        self.brick_size = best_bs
+        
+        # --- ANCHOR SEARCH LOGIC ---
+        # We must find the first candle in history where the price crossed the anchor.
+        # Anchor is a price level.
+        # Condition: Low <= Anchor <= High
+        
+        scan_idx = -1
+        # Convert necessary columns to numpy for speed
+        n_highs = history_df['high'].values
+        n_lows = history_df['low'].values
+        
+        # Simple Loop (Numpy optimization possible but loop is fine for 10k rows once)
+        for i in range(len(history_df)):
+            if n_lows[i] <= best_anchor <= n_highs[i]:
+                scan_idx = i
+                break
+                
+        if scan_idx == -1:
+            logger.warning(f"Optimization Anchor {best_anchor} not found in history range! Defaulting to start of history.")
+            scan_idx = 0
+            start_price = history_df.iloc[0]['close']
         else:
-            # Convert to DF
-            history_df = pd.DataFrame(ticks)
-            # Apply Timezone Offset to History (Shift UTC -> Broker Time)
-            # history_df['time'] is epoch seconds (UTC).
-            # We add offset seconds.
-            history_df['time'] = history_df['time'] + (TIMEZONE_OFFSET * 3600)
+            logger.info(f"Anchor {best_anchor} found at Index {scan_idx} ({history_df.iloc[scan_idx]['date']})")
+            start_price = best_anchor
             
-            history_df['date'] = pd.to_datetime(history_df['time'], unit='s')
-            # Ensure proper columns
-            history_df.rename(columns={'tick_volume': 'volume'}, inplace=True)
+        # Initialize M1 Buffer
+        # We keep data starting from scan_idx to replay
+        replay_df = history_df.iloc[scan_idx:].copy()
+        
+        # Initialize Renko
+        # Start exactly at Anchor Price
+        self.renko = RenkoBuilder(self.brick_size, start_price)
+        
+        # Replay
+        logger.info(f"Replaying Renko State ({len(replay_df)} bars)...")
+        replay_df.set_index('date', inplace=True)
+        
+        # IMPORTANT: M1 Buffer needs to be populated for Indicators
+        # We start with the replay data as our initial buffer
+        # But we might need pre-roll for indicators (e.g. SMA50 needs 50 bars before).
+        # So we should slice M1 buffer from scan_idx - 1000 effectively.
+        buffer_start = max(0, scan_idx - 1000)
+        self.m1_buffer = history_df.iloc[buffer_start:].copy()
+        self.m1_buffer.set_index('date', inplace=True)
+        
+        # Renko Replay Loop (Only on Replay Segment)
+        count = 0
+        for idx, row in replay_df.iterrows():
+            ts_ms = int(row.name.timestamp() * 1000)
             
-            optimizer = RenkoOptimizer()
-            best_bs, best_offset, _ = optimizer.optimize(history_df)
+            p_open = row['open']
+            p_close = row['close']
+            p_high = row['high']
+            p_low = row['low']
             
-            self.brick_size = best_bs
-            self.offset = best_offset
-            
-            # Initialize M1 Buffer with recent history (last 500 bars for indicators)
-            self.m1_buffer = history_df.tail(1000).copy()
-            self.m1_buffer.set_index('date', inplace=True)
-            
-            # Initialize Renko State
-            # We must replay history to align the Renko Sequence and Trend
-            logger.info(f"Replaying history to sync Renko state (Size: {best_bs:.5f})...")
-            
-            # Start from the anchor (best_offset usually aligns with a min/max)
-            # Simplification: Start Renko at first close of replay window
-            start_row = self.m1_buffer.iloc[0]
-            self.renko = RenkoBuilder(self.brick_size, start_row['close'], 0.0)
-            
-            # Replay M1 bars as virtual ticks
-            for idx, row in self.m1_buffer.iterrows():
-                # Row name is index (shifted date). timestamp() returns float seconds.
-                # We need ms.
-                ts_ms = int(row.name.timestamp() * 1000)
-                # Feed Open, High, Low, Close traversal to capture intra-bar bricks?
-                # OLD: self.renko.update_tick(row['close'], ts_ms)
+            if p_close >= p_open:
+                prices = [p_low, p_high, p_close]
+            else:
+                prices = [p_high, p_low, p_close]
                 
-                # NEW: Intra-candle traversal (High/Low) to capture wicks
-                # Logic matches create_renko_optimized_t6.py
-                p_open = row['open']
-                p_close = row['close']
-                p_high = row['high']
-                p_low = row['low']
-                
-                if p_close >= p_open:
-                    # Bullish Candle: Low -> High -> Close
-                    prices = [p_low, p_high, p_close]
-                else:
-                    # Bearish Candle: High -> Low -> Close
-                    prices = [p_high, p_low, p_close]
-                    
-                for p in prices:
-                    self.renko.update_tick(p, ts_ms)
-                
-            # Pre-fill Transformer Stack (Warmup with dummy or real obs)
-            # ideally we run process_signal logic during replay but without executing order.
-            # For simplicity: Pad with zeros first
-            dummy_obs = np.zeros(21, dtype=np.float32)
-            for _ in range(10):
-                self.obs_stack.append(dummy_obs)
-                
-            # Save Warmup Renko Snapshot
-            self._save_renko_snapshot()
+            for p in prices:
+                self.renko.update_tick(p, ts_ms)
+            count += 1
+            
+        logger.info(f"Replay Complete. Generated {len(self.renko.history)} bricks.")
+        
+        # Fill Transformer Stack
+        # Ideally we'd replay inference too to fill stack correctly.
+        # For now, we fill with zeros or try to calculate last N states.
+        # Recalculating last 10 states is better.
+        
+        self.obs_stack.clear()
+        
+        if len(self.renko.history) > 10:
+             # Try to backfill stack
+             pass
+             
+        # Standard Fill (Zeros if empty)
+        dummy_obs = np.zeros(21, dtype=np.float32)
+        while len(self.obs_stack) < 10:
+            self.obs_stack.append(dummy_obs)
+            
+        self._save_renko_snapshot()
             
         logger.info(f"Orbit Started. Brick: {self.brick_size:.4f}")
         
@@ -227,39 +277,9 @@ class OrbitEngine:
             # If we call this exactly at 00:00:01, current tick price is close to Open.
             # Ideally, fetch the M1 bar for 00:00 to get exact Open.
             
-            import MetaTrader5 as mt5
-            # Fetch last 10 mins to find 00:00 candle
-            rates = mt5.copy_rates_from_pos(SYMBOL, mt5.TIMEFRAME_M1, 0, 10)
-            
-            start_price = None
-            if rates is not None and len(rates) > 0:
-                # Look for the bar with time that floor's to today 00:00
-                # But wait, copy_rates returns timestamp.
-                # Today 00:00 UTC = ?
-                # We need to be careful with Timezones.
-                # Simplest approach: Use CURRENT Bid price as the "Open" for our session.
-                # In live trading, the "Open" of the day relative to our session is "Now".
-                tick = mt5.symbol_info_tick(SYMBOL)
-                start_price = tick.bid
-            else:
-                # Fallback
-                start_price = mt5.symbol_info_tick(SYMBOL).bid
-                
-            logger.info(f"Re-initializing Renko with New Day Open: {start_price}")
-            
-            # Destroy and Recreate
-            # Use same brick size / offset as optimized (or default)
-            self.renko = RenkoBuilder(self.brick_size, start_price, self.offset)
-            
-            # 3. Reset State Buffers
-            self.obs_stack.clear()
-            # Refill with zeros
-            dummy_obs = np.zeros(21, dtype=np.float32)
-            for _ in range(10):
-                self.obs_stack.append(dummy_obs)
-                
-            self.lstm_states = None
-            self.episode_starts = np.ones((1,), dtype=bool)
+            # 2. Reset Renko & Session
+            # Call full initialization to re-optimize and sync with new day dynamics
+            self._initialize_session(force_history_fetch=True)
             
             # Update Date
             self.current_date = today

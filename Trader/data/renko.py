@@ -6,9 +6,8 @@ from collections import namedtuple
 NewBrickEvent = namedtuple('NewBrickEvent', ['open', 'close', 'high', 'low', 'uptrend', 'timestamp', 'sequence'])
 
 class RenkoBuilder:
-    def __init__(self, brick_size, start_price, grid_offset=0.0):
+    def __init__(self, brick_size, start_price):
         self.brick_size = brick_size
-        self.grid_offset = grid_offset
         self.current_price = start_price
         
         self.history = [] # List of NewBrickEvent
